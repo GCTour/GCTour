@@ -1,0 +1,18 @@
+<i:arg type="Page" name="tours"/>
+<i:arg type="String" name="webcode" default=""/>
+
+<w:page title="GCTour">
+    <i:block name="head">
+        <style>
+            .breadcrumb {
+                display: none;
+            }
+        </style>
+    </i:block>
+
+    <w:pageHeader titleKey="Tour.search"/>
+
+    <w:tableSearchHeader page="tours" baseUrl="/">
+        
+    </w:tableSearchHeader>
+</w:page>

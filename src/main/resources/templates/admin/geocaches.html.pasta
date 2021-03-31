@@ -1,0 +1,81 @@
+<i:arg type="Page" name="geocaches"/>
+<i:arg type="Tuple" name="northWestCorner"/>
+<i:arg type="Tuple" name="southEastCorner"/>
+<w:page titleKey="Geocache.plural">
+    <i:block name="head">
+        <script type="text/javascript" src="/assets/javascript/leaflet/leaflet.js"></script>
+        <script type="text/javascript" src="/assets/javascript/client.js"></script>
+        <link rel="stylesheet" href="/assets/javascript/leaflet/leaflet.css">
+    </i:block>
+
+    <i:block name="breadcrumbs">
+        <li>
+            <a href="/geocaches">@i18n("Geocache.plural")</a>
+        </li>
+    </i:block>
+
+    <w:pageHeader titleKey="Geocache.plural"/>
+
+    <w:facetSidebar page="@geocaches" baseUrl="/geocaches">
+        <w:tableSearchHeader page="geocaches" baseUrl="/geocaches">
+
+        </w:tableSearchHeader>
+
+        <div id="map"></div>
+        <span class="mt-auto legend legend-small">@geocaches.getTotal() Dosen sind in GCTour gespeichert</span>
+
+        <w:table data="geocaches">
+            <thead>
+            <tr>
+                <th>Typ</th>
+                <th>GC-Code</th>
+                <th>Name</th>
+                <th>Listing-Koordinaten</th>
+                <th>Größe</th>
+                <th>D-Wertung</th>
+                <th>T-Wertung</th>
+            </tr>
+            </thead>
+            <tbody>
+            <i:for type="model.Geocache" var="geocache" items="geocaches.getItems()">
+                <tr>
+                    <td>
+                        <img src="@geocache.getType().getIconUrl()" height="20px">
+                    </td>
+                    <td>
+                        <a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>
+                    <td>
+                        <a href="/geocache/@geocache.getGcCode()">@geocache.getName()</a>
+                    </td>
+                    <td class="text-nowrap">
+                        <a href="javascript:map.flyTo(['@geocache.getListingWaypoint().getLatitude().getAmount()', '@geocache.getListingWaypoint().getLongitude().getAmount()'], 15)">
+                            @geocache.getListingWaypoint().getCoordinates()
+                        </a>
+                    </td>
+                    <td><img src="@geocache.getSize().getIconUrl()" title="@geocache.getSize()"/></td>
+                    <td>@geocache.getDifficulty()</td>
+                    <td>@geocache.getTerrain()</td>
+                </tr>
+                <script>
+                    $(document).ready(function () {
+                        let icon = L.icon({
+                            iconUrl: '@geocache.getType().getIconUrl()',
+                            iconSize: [20, 20],
+                            iconAnchor: [10, 10]
+                        });
+                        L.marker([@geocache.getListingWaypoint().getLatitude().getAmount(), @geocache.getListingWaypoint().getLongitude().getAmount()],
+                            {icon: icon}).addTo(map).bindPopup('<a href="/geocache/@geocache.getGcCode()">@geocache.getName()</br><a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>');
+                    });
+                </script>
+            </i:for>
+            </tbody>
+        </w:table>
+        <script>
+            $(document).ready(function () {
+                map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                    [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+            });
+        </script>
+        <w:pagination page="geocaches" baseUrl="/geocaches"/>
+    </w:facetSidebar>
+</w:page>

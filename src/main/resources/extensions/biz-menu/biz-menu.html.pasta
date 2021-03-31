@@ -1,0 +1,7 @@
+<i:arg type="String" name="point"/>
+<i:if test="point == 'settings'">
+    <w:menuSection>
+        <w:menuItem titleKey="Tour.plural" url="/tours"/>
+        <w:menuItem titleKey="Geocache.plural" url="/geocaches"/>
+    </w:menuSection>
+</i:if>

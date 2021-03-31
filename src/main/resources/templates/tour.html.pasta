@@ -1,0 +1,99 @@
+<i:arg type="Tour" name="tour"/>
+<i:arg type="Page" name="waypointsInTour"/>
+<i:arg type="Tuple" name="northWestCorner"/>
+<i:arg type="Tuple" name="southEastCorner"/>
+
+<w:page title="@tour.toString()">
+    <i:block name="head">
+        <script type="text/javascript" src="/assets/javascript/leaflet/leaflet.js"></script>
+        <script type="text/javascript" src="/assets/javascript/client.js"></script>
+        <link rel="stylesheet" href="/assets/javascript/leaflet/leaflet.css">
+        <style>
+            .breadcrumb {
+                display: none;
+            }
+        </style>
+    </i:block>
+
+    <w:pageHeader title="@tour.toString()">
+        <
+    </w:pageHeader>
+
+    <i:if test="@tour.getWaypointCount() > 0">
+        <div id="map"></div>
+    </i:if>
+
+    <span class="mt-auto legend legend-small">@tour.getGeocacheCount() Caches mit @tour.getWaypointCount() Wegpunkten
+        (davon @tour.getOwnWaypointCount() eigene Wegpunkte) sind in der Tour gespeichert</span>
+
+    <w:table data="waypointsInTour">
+        <thead>
+        <tr>
+            <th>Position</th>
+            <th>Typ</th>
+            <th>GC-Code</th>
+            <th>Name</th>
+            <th>Größe</th>
+            <th>D-Wertung</th>
+            <th>T-Wertung</th>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="model.WaypointInTour" var="waypointInTour" items="waypointsInTour.getItems()">
+            <tr>
+                <i:local name="waypoint" value="@waypointInTour.getWaypoint().fetchValue()"/>
+                <i:local name="geocache" value="@waypoint.getGeocache().fetchValue()"/>
+                <td>@waypointInTour.getPosition()</td>
+                <i:if test="geocache != null">
+                    <td><img src="@geocache.getType().getIconUrl()" height="20px"></td><!--TODO je nach Wegpunkttyp-->
+                    <td>
+                        <a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>
+                    </td>
+                    <td>
+                        <a href="javascript:map.flyTo(['@waypoint.getLatitude().getAmount()', '@waypoint.getLongitude().getAmount()'], 15)">
+                            @geocache.getName()
+                        </a>
+                    </td>
+                    <td><img src="@geocache.getSize().getIconUrl()" title="@geocache.getSize()"></td>
+                    <td>@geocache.getDifficulty()</td><!--TODO Icon?-->
+                    <td>@geocache.getTerrain()</td><!--TODO Icon?-->
+                    <script>
+                        $(document).ready(function () {
+                            let icon = L.icon({
+                                iconUrl: '@geocache.getType().getIconUrl()',
+                                iconSize: [20, 20],
+                                iconAnchor: [10, 10]
+                            });
+                            L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()], {icon: icon})
+                                .addTo(map).bindPopup('@geocache.getName()</br><a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>');
+                        });
+                    </script>
+                    <i:else>
+                        <td><img src="@waypoint.getWaypointType().getIconUrl()"/></td><!--TODO Wegpunkt-Icons-->
+                        <td colspan="5">
+                            @waypoint.getNote()
+                        </td>
+                        <script>
+                            $(document).ready(function () {
+                                let icon = L.icon({
+                                    iconUrl: '@waypoint.getWaypointType().getIconUrl()',
+                                    iconSize: [20, 20],
+                                    iconAnchor: [10, 10]
+                                });
+                                L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()], {icon: icon}).addTo(map).bindPopup('TODO');
+                            });
+                        </script>
+                    </i:else>
+                </i:if>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+    <w:pagination page="waypointsInTour" baseUrl="@apply('/tour/%s', tour.getWebcode())"/>
+    <script>
+        $(document).ready(function () {
+            map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+        });
+    </script>
+</w:page>

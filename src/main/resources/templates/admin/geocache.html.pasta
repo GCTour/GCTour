@@ -1,0 +1,83 @@
+<i:arg type="Geocache" name="geocache"/>
+<i:arg type="Tuple" name="northWestCorner"/>
+<i:arg type="Tuple" name="southEastCorner"/>
+<w:page title="@geocache.toString()">
+    <i:block name="head">
+        <script type="text/javascript" src="/assets/javascript/leaflet/leaflet.js"></script>
+        <script type="text/javascript" src="/assets/javascript/client.js"></script>
+        <link rel="stylesheet" href="/assets/javascript/leaflet/leaflet.css">
+    </i:block>
+
+    <i:block name="breadcrumbs">
+        <li>
+            <a href="/geocaches">@i18n("Geocache.plural")</a>
+        </li>
+        <li>
+            <a href="/geocache/@geocache.getGcCode()">@geocache.toString()</a>
+        </li>
+    </i:block>
+
+    <w:pageHeader title="@geocache.toString()"/>
+
+    <div id="map"></div>
+    <span class="mt-auto legend legend-small">@geocache.getWaypoints().size() Wegpunkte sind zu diesem Cache gespeichert</span>
+
+    <w:table data="@geocache.getWaypoints()">
+        <thead>
+        <tr>
+            <th></th>
+            <th>@i18n("Waypoint.waypointType")</th>
+            <th>Koordinaten</th>
+            <th>Note</th>
+        </tr>
+        </thead>
+        <tbody>
+        <i:for type="model.Waypoint" var="waypoint" items="@geocache.getWaypoints()">
+            <tr>
+                <i:if test="@waypoint.getWaypointType() == model.WaypointType.ORIGINAL">
+                    <td><img src="@geocache.getType().getIconUrl()" height="20px"/></td>
+                    <script>
+                        $(document).ready(function () {
+                            let icon = L.icon({
+                                iconUrl: '@geocache.getType().getIconUrl()',
+                                iconSize: [20, 20],
+                                iconAnchor: [10, 10]
+                            });
+                            L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()], {icon: icon})
+                                .addTo(map).bindPopup('@waypoint.getWaypointType()');
+                        });
+                    </script>
+
+                    <i:else>
+                        <td><img src="@waypoint.getWaypointType().getIconUrl()"/></td>
+                        <script>
+                            $(document).ready(function () {
+                                let icon = L.icon({
+                                    iconUrl: '@waypoint.getWaypointType().getIconUrl()',
+                                    iconSize: [20, 20],
+                                    iconAnchor: [10, 10]
+                                });
+                                L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()], {icon: icon})
+                                    .addTo(map).bindPopup('@waypoint.getWaypointType()');
+                            });
+                        </script>
+                    </i:else>
+                </i:if>
+                <td>@waypoint.getWaypointType()</td>
+                <td>
+                    <a href="javascript:map.flyTo(['@waypoint.getLatitude().getAmount()', '@waypoint.getLongitude().getAmount()'], 15)">
+                        @waypoint.getCoordinates()
+                    </a>
+                </td>
+                <td>@waypoint.getNote()</td>
+            </tr>
+        </i:for>
+        </tbody>
+    </w:table>
+    <script>
+        $(document).ready(function () {
+            map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+        });
+    </script>
+</w:page>

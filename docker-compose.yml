@@ -1,0 +1,51 @@
+version: "3.7"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.2
+    ports:
+      - "9200"
+    environment:
+      - ES_JAVA_OPTS=-Xms128M -Xmx128M
+      - discovery.type=single-node
+    hostname: es
+    networks:
+      - gcTour
+
+  mariadb:
+    image: mariadb:10.3.14-bionic
+    ports:
+      - "3306"
+    hostname: mariadb
+    networks:
+      - gcTour
+    command: --collation-server=utf8mb4_unicode_ci --character-set-server=utf8mb4
+
+  clickhouse:
+    image: yandex/clickhouse-server
+    ports:
+      - "8123"
+      - "9000"
+    hostname: clickhouse
+    networks:
+      - gcTour
+
+  redis:
+    image: redis:3.2
+    ports:
+      - "6379"
+    hostname: redis
+    networks:
+      - gcTour
+
+  maildev:
+    image: djfarrelly/maildev:1.1.0
+    ports:
+      - "1025:25"
+      - "8025:80"
+    hostname: maildev
+    networks:
+      - gcTour
+
+networks:
+  gcTour:

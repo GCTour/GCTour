@@ -1,0 +1,49 @@
+<i:arg type="Page" name="tours"/>
+<w:page titleKey="Tour.plural">
+
+    <i:block name="breadcrumbs">
+        <li>
+            <a href="/tours">@i18n("Tour.plural")</a>
+        </li>
+    </i:block>
+
+    <w:pageHeader titleKey="Tour.plural"/>
+
+    <w:facetSidebar page="@tours" baseUrl="/">
+        <w:tableSearchHeader page="tours" baseUrl="/tours">
+
+        </w:tableSearchHeader>
+
+        <span class="mt-auto legend legend-small">@tours.getTotal() Touren (mit dem Suchbegriff) sind in GCTour gespeichert.</span>
+
+        <w:table data="tours">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Webcode</th>
+                <th>Anzahl Geocaches</th>
+                <th>Anzahl Wegpunkte gesamt</th>
+                <th>Davon Eigene Wegpunkte</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <i:for type="model.Tour" var="tour" items="tours.getItems()">
+                <tr>
+                    <td>@tour.getName()</td>
+                    <td>
+                        <a href="/tour/@tour.getWebcode()">@tour.getWebcode()</a>
+                    </td>
+                    <td>@tour.getGeocacheCount()</td>
+                    <td>@tour.getWaypointCount()</td>
+                    <td>@tour.getOwnWaypointCount()</td>
+                    <td>
+                        <w:deleteLink url="@apply('/tour/%s/delete', tour.getWebcode())" page="@tours"/>
+                    </td>
+                </tr>
+            </i:for>
+            </tbody>
+        </w:table>
+        <w:pagination page="tours" baseUrl="/tours"/>
+    </w:facetSidebar>
+</w:page>
