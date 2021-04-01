@@ -15,6 +15,7 @@ jobs:
         with:
           push: true
           context: .
-          tags: gctour/gctour:latest
+          tags: gctour/gctour/gctour:latest
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.KEY }}
+          registry: docker.pkg.github.com
