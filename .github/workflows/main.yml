@@ -7,13 +7,19 @@ jobs:
     steps:
       - name: checkout project
         uses: actions/checkout@v1
+        
       - name: build gcTour
         run: mvn clean package -DskipTests
-      - name: Push to GitHub Packages
-        uses: docker/build-push-action@v1
+     
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v1
         with:
-          username: ${{ github.actor }}
-          password: ${{ secrets.KEY }}
           registry: docker.pkg.github.com
-          repository: gctour/gctour/gctour
-          tag_with_ref: true
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.KEY }}
+          
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: docker.pkg.github.com/${{ github.repository_owner }}/gctour/gctour:latest
