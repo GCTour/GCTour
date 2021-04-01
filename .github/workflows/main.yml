@@ -3,8 +3,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: hub.scireum.com/scireum/sirius-build:latest
+    container: hub.scireum.com/scireum/sirius-build:latest
     steps:
       - name: build software
         run: mvn clean package -DskipTests
