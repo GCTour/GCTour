@@ -15,11 +15,11 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: docker.pkg.github.com
-          username: ${{ github.repository_owner }}
+          username: ${{ gctour }}
           password: ${{ secrets.KEY }}
           
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: docker.pkg.github.com/${{ github.repository_owner }}/gctour/gctour:latest
+          tags: docker.pkg.github.com/gctour/gctour/gctour:latest
