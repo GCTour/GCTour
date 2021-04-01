@@ -5,5 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     container: hub.scireum.com/scireum/sirius-build:latest
     steps:
-      - name: build software
+      - name: checkout project
+        uses: actions/checkout@v1
+      - name: build gcTour
         run: mvn clean package -DskipTests
