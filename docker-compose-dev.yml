@@ -21,29 +21,11 @@ services:
       - gcTour
     command: --collation-server=utf8mb4_unicode_ci --character-set-server=utf8mb4
 
-  clickhouse:
-    image: yandex/clickhouse-server
-    ports:
-      - "8123"
-      - "9000"
-    hostname: clickhouse
-    networks:
-      - gcTour
-
   redis:
-    image: redis:3.2
+    image: library/redis:latest
     ports:
       - "6379"
     hostname: redis
-    networks:
-      - gcTour
-
-  maildev:
-    image: djfarrelly/maildev:1.1.0
-    ports:
-      - "1025:25"
-      - "8025:80"
-    hostname: maildev
     networks:
       - gcTour
 

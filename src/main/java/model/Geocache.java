@@ -57,15 +57,17 @@ public class Geocache extends BizEntity implements Journaled {
      * Contains the type of the geocache.
      */
     public static final Mapping TYPE = Mapping.named("type");
+    @Length(30)
     @Autoloaded
-    private GeocacheType type;
+    private GeocacheType type = GeocacheType.UNKNOWN_TYPE;
 
     /**
      * Contains the size of the geocache-container.
      */
     public static final Mapping SIZE = Mapping.named("size");
+    @Length(10)
     @Autoloaded
-    private GeocacheSize size;
+    private GeocacheSize size = GeocacheSize.UNKNOWN;
 
     /**
      * Contains the difficulty-rating of the geocache.

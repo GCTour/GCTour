@@ -1,9 +1,5 @@
 .idea/*
 *.iml
 target/
-data/*
-instance.conf
-docker-compose.yml
-README.md
-restart-gcTour.sh
-src/test/*
+data/
+test/

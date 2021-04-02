@@ -12,9 +12,8 @@ public enum WaypointType {
 
     /**
      * The original coordinates (in case of some cache types also the {@link WaypointType#FINAL_LOCATION})
-     * //TODO Icon anpassen
      */
-    ORIGINAL("TODOjpg"),
+    ORIGINAL(null),
 
     /**
      * The final waypoint of the cache used as main symbol on the map
@@ -53,8 +52,8 @@ public enum WaypointType {
      */
     OWN_WAYPOINT("https://www.gctour.de/i/RedFlag.png");
 
-    WaypointType(String iconName) {
-        this.iconUrl = iconName;
+    WaypointType(String iconUrl) {
+        this.iconUrl = iconUrl;
     }
 
     private final String iconUrl;
