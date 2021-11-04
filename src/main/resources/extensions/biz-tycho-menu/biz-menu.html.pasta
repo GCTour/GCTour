@@ -1,0 +1,7 @@
+<i:arg type="String" name="point"/>
+<i:if test="point == 'settings'">
+    <t:dropdownSection>
+        <t:dropdownItem labelKey="Tour.plural" url="/tours"/>
+        <t:dropdownItem labelKey="Geocache.plural" url="/geocaches"/>
+    </t:dropdownSection>
+</i:if>
