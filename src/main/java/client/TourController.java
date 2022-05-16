@@ -25,6 +25,7 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.UserContext;
+import sirius.web.services.InternalService;
 import sirius.web.services.JSONStructuredOutput;
 
 import java.util.Collections;
@@ -33,7 +34,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * /* TODO bei uploiad
+ * /* TODO bei upload
  * //https://www.geocaching.com/api/proxy/web/search/geocachepreview/GC3M3WH aufrufen & JSON parsen
  * <p>
  * - wenn nicht korrigiert & WP-laden an, GPX aufrufen und WPs als XML parsen
@@ -92,20 +93,22 @@ public class TourController extends BizController {
             return;
         }
         Optional<Tour> tour = oma.select(Tour.class).eq(Tour.WEBCODE, webcode.toUpperCase()).first();
-        if (!tour.isPresent()) {
-            UserContext.message(Message.error("Die Tour mit dem Code '"
-                                              + webcode.toUpperCase()
-                                              + "' existiert nicht."));
+        if (tour.isEmpty()) {
+            UserContext.message(Message.error()
+                                       .withHTMLMessage("Die Tour mit dem Code '"
+                                                        + webcode.toUpperCase()
+                                                        + "' existiert nicht."));
             ctx.respondWith().template(HttpResponseStatus.NOT_FOUND, "/templates/index.html.pasta", new Page<Tour>());
             return;
         }
         Page<WaypointInTour> waypointsInTour = getWaypointsInTour(ctx, tour.get());
+        Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypointsInTour);
         ctx.respondWith()
            .template("/templates/tour.html.pasta",
                      tour.get(),
                      waypointsInTour,
-                     getMapBounds(waypointsInTour).getFirst(),
-                     getMapBounds(waypointsInTour).getSecond());
+                     mapBounds.getFirst(),
+                     mapBounds.getSecond());
     }
 
     /**
@@ -116,7 +119,8 @@ public class TourController extends BizController {
      * @param out the JSON response
      */
 
-    @Routed(value = "/tour/upload", jsonCall = true, priority = 90)
+    @InternalService
+    @Routed(value = "/tour/upload", priority = 90)
     public void uploadTour(WebContext ctx, JSONStructuredOutput out) {
         ctx.markAsLongCall();
         JSONObject json = ctx.getJSONContent().getJSONObject("tour");
@@ -196,7 +200,7 @@ public class TourController extends BizController {
                                                .orElse(new WaypointInTour());
             waypointInTour.getTour().setValue(tour);
             waypointInTour.getWaypoint().setValue(waypointForTour);
-            waypointInTour.setPosition(i+1);
+            waypointInTour.setPosition(i + 1);
             newWaypointsInTour.add(waypointInTour);
             //TODO andere Wegpuntke die aber erst aus GPX geholt werden müssen
         }
@@ -237,7 +241,7 @@ public class TourController extends BizController {
         out.property("removedWaypoints", removedWaypoints);
         out.property("geocaches", jsonGeocaches.size());
         out.property("ownWaypoints", jsonWaypoints.size());
-        out.property("savedAsNewTour", saveAsNewTour || !oldTour.isPresent());
+        out.property("savedAsNewTour", saveAsNewTour || oldTour.isEmpty());
         out.property("webcode", tour.getWebcode());
 
         //debug

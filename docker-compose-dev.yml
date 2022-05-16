@@ -16,13 +16,16 @@ services:
     image: mariadb:10.3.14-bionic
     ports:
       - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gctour
     hostname: mariadb
     networks:
       - gcTour
     command: --collation-server=utf8mb4_unicode_ci --character-set-server=utf8mb4
 
   redis:
-    image: library/redis:latest
+    image: redis:6.2.6-alpine
     ports:
       - "6379"
     hostname: redis

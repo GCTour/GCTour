@@ -1,0 +1,10 @@
+<i:arg type="String" name="point"/>
+
+<i:switch test="@point">
+    <i:block name="left">
+        <w:menuItem titleKey="Tour.search" url="/"/>
+        <w:menuItem titleKey="GCTour.install" url="/install"/>
+        <w:menuItem titleKey="GCTour.imprint" url="/imprint"/>
+        <w:menuItem titleKey="GC" url="https://geocaching.com"/>
+    </i:block>
+</i:switch>

@@ -38,17 +38,16 @@ public class GeocacheController extends BizController {
     public void showGeocache(WebContext ctx, String gcCode) {
         Geocache geocache = oma.select(Geocache.class).eq(Geocache.GC_CODE, gcCode.toUpperCase()).queryFirst();
         if (geocache == null) {
-            UserContext.message(Message.error("Der Geocache mit dem Code '" + gcCode + "' existiert nicht."));
+            UserContext.message(Message.error()
+                                       .withHTMLMessage("Der Geocache mit dem Code '" + gcCode + "' existiert nicht."));
             ctx.respondWith().redirectPermanently("/geocaches");
             return;
         }
         List<Waypoint> waypoints = geocache.getWaypoints();
+        Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypoints);
 
         ctx.respondWith()
-           .template("/templates/admin/geocache.html.pasta",
-                     geocache,
-                     getMapBounds(waypoints).getFirst(),
-                     getMapBounds(waypoints).getSecond());
+           .template("/templates/admin/geocache.html.pasta", geocache, mapBounds.getFirst(), mapBounds.getSecond());
     }
 
     /**
@@ -111,12 +110,10 @@ public class GeocacheController extends BizController {
 
         List<Waypoint> waypoints = new ArrayList<>(Collections.emptyList());
         page.getItems().forEach(geocache -> waypoints.add(geocache.getListingWaypoint()));
+        Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypoints);
 
         ctx.respondWith()
-           .template("/templates/admin/geocaches.html.pasta",
-                     page,
-                     getMapBounds(waypoints).getFirst(),
-                     getMapBounds(waypoints).getSecond());
+           .template("/templates/admin/geocaches.html.pasta", page, mapBounds.getFirst(), mapBounds.getSecond());
     }
 
     private Tuple<Tuple<Double, Double>, Tuple<Double, Double>> getMapBounds(List<Waypoint> waypoints) {
