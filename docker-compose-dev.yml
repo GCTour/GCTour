@@ -13,7 +13,7 @@ services:
       - gcTour
 
   mariadb:
-    image: mariadb:10.3.30-focal
+    image: mariadb:10.3.14-bionic
     ports:
       - "3306"
     environment:
@@ -25,7 +25,7 @@ services:
     command: --collation-server=utf8mb4_unicode_ci --character-set-server=utf8mb4
 
   redis:
-    image: library/redis:latest
+    image: redis:6.2.6-alpine
     ports:
       - "6379"
     hostname: redis
