@@ -1,7 +1,0 @@
-<i:arg type="String" name="point"/>
-<i:if test="point == 'left'">
-    <w:menuItem titleKey="Tour.search" url="/"/>
-    <w:menuItem titleKey="GCTour.install" url="/install"/>
-    <w:menuItem titleKey="GCTour.imprint" url="/imprint"/>
-    <w:menuItem titleKey="GC" url="https://geocaching.com"/>
-</i:if>

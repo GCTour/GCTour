@@ -22,7 +22,7 @@
         </w:tableSearchHeader>
 
         <div id="map"></div>
-        <span class="mt-auto legend legend-small">@geocaches.getTotal() Dosen sind in GCTour gespeichert</span>
+        <span class="mt-auto legend legend-small">@geocaches.getTotal() Geocaches sind in GCTour gespeichert</span>
 
         <w:table data="geocaches">
             <thead>

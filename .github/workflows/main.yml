@@ -3,7 +3,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: hub.scireum.com/scireum/sirius-build-jdk16:latest
+    container: scireum/sirius-build-jdk18:4.1
     steps:
       - name: checkout project
         uses: actions/checkout@v1

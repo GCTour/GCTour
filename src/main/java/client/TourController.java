@@ -102,12 +102,13 @@ public class TourController extends BizController {
             return;
         }
         Page<WaypointInTour> waypointsInTour = getWaypointsInTour(ctx, tour.get());
+        Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypointsInTour);
         ctx.respondWith()
            .template("/templates/tour.html.pasta",
                      tour.get(),
                      waypointsInTour,
-                     getMapBounds(waypointsInTour).getFirst(),
-                     getMapBounds(waypointsInTour).getSecond());
+                     mapBounds.getFirst(),
+                     mapBounds.getSecond());
     }
 
     /**
@@ -199,7 +200,7 @@ public class TourController extends BizController {
                                                .orElse(new WaypointInTour());
             waypointInTour.getTour().setValue(tour);
             waypointInTour.getWaypoint().setValue(waypointForTour);
-            waypointInTour.setPosition(i+1);
+            waypointInTour.setPosition(i + 1);
             newWaypointsInTour.add(waypointInTour);
             //TODO andere Wegpuntke die aber erst aus GPX geholt werden müssen
         }
@@ -240,7 +241,7 @@ public class TourController extends BizController {
         out.property("removedWaypoints", removedWaypoints);
         out.property("geocaches", jsonGeocaches.size());
         out.property("ownWaypoints", jsonWaypoints.size());
-        out.property("savedAsNewTour", saveAsNewTour || !oldTour.isPresent());
+        out.property("savedAsNewTour", saveAsNewTour || oldTour.isEmpty());
         out.property("webcode", tour.getWebcode());
 
         //debug
