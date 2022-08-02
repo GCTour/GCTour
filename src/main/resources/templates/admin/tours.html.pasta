@@ -9,12 +9,15 @@
 
     <w:pageHeader titleKey="Tour.plural"/>
 
-    <w:facetSidebar page="@tours" baseUrl="/">
-        <w:tableSearchHeader page="tours" baseUrl="/tours">
+    <t:sidebar>
+        <i:block name="sidebar">
+            <t:filterbox baseUrl="/tours" page="tours"/>
+        </i:block>
 
-        </w:tableSearchHeader>
+        <t:searchHeader baseUrl="/tours" page="tours"/>
+        <t:emptyCheck data="tours">
 
-        <span class="mt-auto legend legend-small">@tours.getTotal() Touren (mit dem Suchbegriff) sind in GCTour gespeichert.</span>
+            <span class="mt-auto legend legend-small">@tours.getTotal() Touren (mit dem Suchbegriff) sind in GCTour gespeichert.</span>
 
         <w:table data="tours">
             <thead>

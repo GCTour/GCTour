@@ -3,21 +3,22 @@
 <i:arg type="Tuple" name="northWestCorner"/>
 <i:arg type="Tuple" name="southEastCorner"/>
 
-<w:page title="@tour.toString()">
+<t:page title="@tour.toString()">
     <i:block name="head">
         <script type="text/javascript" src="/assets/javascript/leaflet/leaflet.js"></script>
         <script type="text/javascript" src="/assets/javascript/client.js"></script>
         <link rel="stylesheet" href="/assets/javascript/leaflet/leaflet.css">
-        <style>
-            .breadcrumb {
-                display: none;
-            }
-        </style>
     </i:block>
 
-    <w:pageHeader title="@tour.toString()">
-        <
-    </w:pageHeader>
+    <t:loggedIn>
+        <i:block name="breadcrumbs">
+            <li>
+                <a href="/tours">@i18n("Tour.plural")</a>
+            </li>
+        </i:block>
+    </t:loggedIn>
+
+    <t:pageHeader title="@tour.toString()"/>
 
     <i:if test="@tour.getWaypointCount() > 0">
         <div id="map"></div>
@@ -89,11 +90,11 @@
         </i:for>
         </tbody>
     </w:table>
-    <w:pagination page="waypointsInTour" baseUrl="@apply('/tour/%s', tour.getWebcode())"/>
     <script>
         $(document).ready(function () {
             map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
                 [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
         });
     </script>
-</w:page>
+    <t:pagination page="waypointsInTour" baseUrl="@apply('/tour/%s', tour.getWebcode())"/>
+</t:page>

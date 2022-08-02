@@ -43,12 +43,10 @@ public class GeocacheController extends BizController {
             return;
         }
         List<Waypoint> waypoints = geocache.getWaypoints();
+        Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypoints);
 
         ctx.respondWith()
-           .template("/templates/admin/geocache.html.pasta",
-                     geocache,
-                     getMapBounds(waypoints).getFirst(),
-                     getMapBounds(waypoints).getSecond());
+           .template("/templates/admin/geocache.html.pasta", geocache, mapBounds.getFirst(), mapBounds.getSecond());
     }
 
     /**
@@ -71,7 +69,8 @@ public class GeocacheController extends BizController {
                                                           .withContext(ctx)
                                                           .withSearchFields(QueryField.contains(Geocache.GC_CODE),
                                                                             QueryField.contains(Geocache.NAME));
-        Facet dFacet = new Facet("D-Wertung", Geocache.DIFFICULTY.getName(), ctx.get("difficulty").asString(), null);
+        Facet dFacet =
+                new Facet("D-Wertung", Geocache.DIFFICULTY.getName()).withValue(ctx.get("difficulty").asString());
         dFacet.addItem("1.0", "1.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.ONE).count());
         dFacet.addItem("1.5", "1.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(1.5)).count());
         dFacet.addItem("2.0", "2.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(2)).count());
@@ -83,7 +82,7 @@ public class GeocacheController extends BizController {
         dFacet.addItem("5.0", "5.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(5)).count());
         pageHelper.addFilterFacet(dFacet);
 
-        Facet tFacet = new Facet("T-Wertung", Geocache.TERRAIN.getName(), ctx.get("terrain").asString(), null);
+        Facet tFacet = new Facet("T-Wertung", Geocache.TERRAIN.getName()).withValue(ctx.get("terrain").asString());
         tFacet.addItem("1.0", "1.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.ONE).count());
         tFacet.addItem("1.5", "1.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(1.5)).count());
         tFacet.addItem("2.0", "2.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(2)).count());
@@ -111,12 +110,10 @@ public class GeocacheController extends BizController {
 
         List<Waypoint> waypoints = new ArrayList<>(Collections.emptyList());
         page.getItems().forEach(geocache -> waypoints.add(geocache.getListingWaypoint()));
+        Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypoints);
 
         ctx.respondWith()
-           .template("/templates/admin/geocaches.html.pasta",
-                     page,
-                     getMapBounds(waypoints).getFirst(),
-                     getMapBounds(waypoints).getSecond());
+           .template("/templates/admin/geocaches.html.pasta", page, mapBounds.getFirst(), mapBounds.getSecond());
     }
 
     private Tuple<Tuple<Double, Double>, Tuple<Double, Double>> getMapBounds(List<Waypoint> waypoints) {

@@ -1,7 +1,7 @@
 <i:arg type="Geocache" name="geocache"/>
 <i:arg type="Tuple" name="northWestCorner"/>
 <i:arg type="Tuple" name="southEastCorner"/>
-<w:page title="@geocache.toString()">
+<t:page title="@geocache.toString()">
     <i:block name="head">
         <script type="text/javascript" src="/assets/javascript/leaflet/leaflet.js"></script>
         <script type="text/javascript" src="/assets/javascript/client.js"></script>
@@ -12,12 +12,9 @@
         <li>
             <a href="/geocaches">@i18n("Geocache.plural")</a>
         </li>
-        <li>
-            <a href="/geocache/@geocache.getGcCode()">@geocache.toString()</a>
-        </li>
     </i:block>
 
-    <w:pageHeader title="@geocache.toString()"/>
+    <t:pageHeader title="@geocache.toString()"/>
 
     <div id="map"></div>
     <span class="mt-auto legend legend-small">@geocache.getWaypoints().size() Wegpunkte sind zu diesem Cache gespeichert</span>
@@ -80,4 +77,4 @@
                 [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
         });
     </script>
-</w:page>
+</t:page>

@@ -100,12 +100,14 @@ public class TourController extends BizController {
             return;
         }
         Page<WaypointInTour> waypointsInTour = getWaypointsInTour(ctx, tour.get());
+        Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypointsInTour);
+
         ctx.respondWith()
            .template("/templates/tour.html.pasta",
                      tour.get(),
                      waypointsInTour,
-                     getMapBounds(waypointsInTour).getFirst(),
-                     getMapBounds(waypointsInTour).getSecond());
+                     mapBounds.getFirst(),
+                     mapBounds.getSecond());
     }
 
     /**
@@ -145,8 +147,12 @@ public class TourController extends BizController {
             Geocache geocache = oma.select(Geocache.class).eq(Geocache.GC_CODE, gcCode).first().orElse(new Geocache());
             geocache.setGcCode(gcCode);
             geocache.setName(jsonGeocaches.getJSONObject(i).getString("name"));
-            geocache.setType(GeocacheType.valueOf(jsonGeocaches.getJSONObject(i).getString("geocacheType")));
-            geocache.setSize(GeocacheSize.valueOf(jsonGeocaches.getJSONObject(i).getString("containerType")));
+            geocache.setType(GeocacheType.valueOf(jsonGeocaches.getJSONObject(i)
+                                                               .getString("geocacheType")
+                                                               .toUpperCase()));
+            geocache.setSize(GeocacheSize.valueOf(jsonGeocaches.getJSONObject(i)
+                                                               .getString("containerType")
+                                                               .toUpperCase()));
             geocache.setDifficulty(Amount.of(jsonGeocaches.getJSONObject(i).getDoubleValue("difficulty")));
             geocache.setTerrain(Amount.of(jsonGeocaches.getJSONObject(i).getDoubleValue("terrain")));
             oma.update(geocache);
@@ -196,7 +202,7 @@ public class TourController extends BizController {
                                                .orElse(new WaypointInTour());
             waypointInTour.getTour().setValue(tour);
             waypointInTour.getWaypoint().setValue(waypointForTour);
-            waypointInTour.setPosition(i+1);
+            waypointInTour.setPosition(i + 1);
             newWaypointsInTour.add(waypointInTour);
             //TODO andere Wegpuntke die aber erst aus GPX geholt werden müssen
         }
@@ -237,7 +243,7 @@ public class TourController extends BizController {
         out.property("removedWaypoints", removedWaypoints);
         out.property("geocaches", jsonGeocaches.size());
         out.property("ownWaypoints", jsonWaypoints.size());
-        out.property("savedAsNewTour", saveAsNewTour || !oldTour.isPresent());
+        out.property("savedAsNewTour", saveAsNewTour || oldTour.isEmpty());
         out.property("webcode", tour.getWebcode());
 
         //debug
