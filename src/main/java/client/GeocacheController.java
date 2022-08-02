@@ -38,7 +38,8 @@ public class GeocacheController extends BizController {
     public void showGeocache(WebContext ctx, String gcCode) {
         Geocache geocache = oma.select(Geocache.class).eq(Geocache.GC_CODE, gcCode.toUpperCase()).queryFirst();
         if (geocache == null) {
-            UserContext.message(Message.error("Der Geocache mit dem Code '" + gcCode + "' existiert nicht."));
+            UserContext.message(Message.error()
+                                       .withHTMLMessage("Der Geocache mit dem Code '" + gcCode + "' existiert nicht."));
             ctx.respondWith().redirectPermanently("/geocaches");
             return;
         }

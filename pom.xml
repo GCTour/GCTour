@@ -6,26 +6,26 @@
     <parent>
         <groupId>com.scireum</groupId>
         <artifactId>sirius-parent</artifactId>
-        <version>7.0.1</version>
+        <version>10.0.0</version>
     </parent>
     <groupId>com.yannickxy</groupId>
-
+    <artifactId>GCTour</artifactId>
+    <version>DEVELOPMENT-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>GCTour</name>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>18</source>
+                    <target>18</target>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    <artifactId>GCTour</artifactId>
-    <version>DEVELOPMENT-SNAPSHOT</version>
-    <packaging>jar</packaging>
 
     <repositories>
         <repository>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.scireum</groupId>
             <artifactId>sirius-biz</artifactId>
-            <version>ga-1.0.0</version>
+            <version>dev-58.2.1</version>
         </dependency>
     </dependencies>
 </project>
