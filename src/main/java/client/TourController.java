@@ -25,6 +25,7 @@ import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 import sirius.web.security.UserContext;
+import sirius.web.services.InternalService;
 import sirius.web.services.JSONStructuredOutput;
 
 import java.util.Collections;
@@ -33,7 +34,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * /* TODO bei uploiad
+ * /* TODO bei upload
  * //https://www.geocaching.com/api/proxy/web/search/geocachepreview/GC3M3WH aufrufen & JSON parsen
  * <p>
  * - wenn nicht korrigiert & WP-laden an, GPX aufrufen und WPs als XML parsen
@@ -92,10 +93,11 @@ public class TourController extends BizController {
             return;
         }
         Optional<Tour> tour = oma.select(Tour.class).eq(Tour.WEBCODE, webcode.toUpperCase()).first();
-        if (!tour.isPresent()) {
-            UserContext.message(Message.error("Die Tour mit dem Code '"
-                                              + webcode.toUpperCase()
-                                              + "' existiert nicht."));
+        if (tour.isEmpty()) {
+            UserContext.message(Message.error()
+                                       .withHTMLMessage("Die Tour mit dem Code '"
+                                                        + webcode.toUpperCase()
+                                                        + "' existiert nicht."));
             ctx.respondWith().template(HttpResponseStatus.NOT_FOUND, "/templates/index.html.pasta", new Page<Tour>());
             return;
         }
@@ -118,7 +120,8 @@ public class TourController extends BizController {
      * @param out the JSON response
      */
 
-    @Routed(value = "/tour/upload", jsonCall = true, priority = 90)
+    @InternalService
+    @Routed(value = "/tour/upload", priority = 90)
     public void uploadTour(WebContext ctx, JSONStructuredOutput out) {
         ctx.markAsLongCall();
         JSONObject json = ctx.getJSONContent().getJSONObject("tour");
