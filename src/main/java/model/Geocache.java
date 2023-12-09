@@ -18,14 +18,18 @@ import sirius.kernel.commons.Strings;
 import sirius.kernel.nls.NLS;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static java.lang.Integer.parseInt;
+import static java.lang.Long.parseLong;
 
 /**
  * // TODO Javadoc
  */
-@Index(name = "gcCode_index", columns = {"gcCode"}, unique = true)
-@Index(name = "gcId_index", columns = {"gcId"}, unique = true)
+@Index(name = "gcCode_index", columns = "gcCode", unique = true)
+@Index(name = "gcId_index", columns = "gcId", unique = true)
 public class Geocache extends BizEntity implements Journaled {
 
     /**
@@ -89,6 +93,17 @@ public class Geocache extends BizEntity implements Journaled {
     @Numeric(precision = 2, scale = 1)
     private Amount terrain = Amount.NOTHING;
 
+    // TODO add Status - aktiv, deaktiviert, archiviert, unpublished?
+
+    // TODO add PMO-Status?
+
+    // TODO Listing-WP oder Korr-WP als direkte Referenz reinlegen?^
+
+    /*
+    curl 'https://www.geocaching.com/geocache/GC3M3WH -so - | grep -iPo '(?<=<title>)(.*)(?=</title>)'
+
+     */
+
     /**
      * Used to record changes on fields of the geocache.
      */
@@ -105,18 +120,33 @@ public class Geocache extends BizEntity implements Journaled {
      * @return the ID for the given GC-Code
      * @see <a href="https://api.groundspeak.com/documentation#referencecodes">Groundspeak API Doc</a>
      */
-    public long convertGcCodeToId(@Nonnull String gcCode) {
-        String scrAlphabet = "0123456789ABCDEFGHJKMNPQRTVWXYZ";
+    public static long convertGcCodeToId(@Nonnull String gcCode) {
+        String srcAlphabet = "0123456789ABCDEFGHJKMNPQRTVWXYZ";
         String destAlphabet = "0123456789";
 
-        long result = convert(gcCode.substring(2), scrAlphabet, destAlphabet);
+        long result = parseLong(convert(gcCode.substring(2), srcAlphabet, destAlphabet));
         if (result < 476656) {
-            return convert(gcCode.substring(2), "0123456789ABCDEF", destAlphabet);
+            return parseLong(convert(gcCode.substring(2), "0123456789ABCDEF", destAlphabet));
         }
         return result - 411120;
     }
 
-    private long convert(@Nonnull String src, @Nonnull String srcAlphabet, @Nonnull String destAlphabet) {
+    /**
+     * @param id the ID to convert
+     * @return the GC-Code for the given ID
+     * @see <a href="https://api.groundspeak.com/documentation#referencecodes">Groundspeak API Doc</a>
+     */
+    public static String convertIdToGcCode(long id) {
+        String srcAlphabet = "0123456789";
+        String destAlphabet = "0123456789ABCDEFGHJKMNPQRTVWXYZ";
+
+        if (id + 411120 < 476656) {
+            return "GC" + convert(String.valueOf(id), srcAlphabet, "0123456789ABCDEF");
+        }
+        return "GC" + convert(String.valueOf(id + 411120), srcAlphabet, destAlphabet);
+    }
+
+    private static String convert(@Nonnull String src, @Nonnull String srcAlphabet, @Nonnull String destAlphabet) {
         int srcBase = srcAlphabet.length();
         int dstBase = destAlphabet.length();
 
@@ -145,13 +175,18 @@ public class Geocache extends BizEntity implements Journaled {
         char digit = destAlphabet.charAt(val);
         ret = digit + ret;
 
-        return Long.parseLong(ret);
+        return ret;
     }
 
-    //TODO check S-->5 und O ->0 - wird Validate oder Safe zuerst ausgeführt?
+    //TODO check S ->5 und O ->0 - wird Validate oder Safe zuerst ausgeführt?
     @OnValidate
     protected void validate(Consumer<String> warnings) {
-        if (!gcCode.matches("GC[0123456789ABCDEFGHJKMNPQRTVWXYZ]{1,6}")) {
+        gcCode = gcCode.toUpperCase();
+        if (gcCode.contains("S") || gcCode.contains("O")) {
+            gcCode = gcCode.replace('S', '5').replace("O", "0");
+            warnings.accept(NLS.fmtr("Geocache.gcCodeFixed").set("gcCode", gcCode).format());
+        }
+        if (!gcCode.matches("GC[0123456789ABCDEFGHJKMNPQRTVWXYZ]*")) {
             warnings.accept(NLS.fmtr("Geocache.invalidGcCode").set("gcCode", gcCode).format());
         }
     }
@@ -177,7 +212,12 @@ public class Geocache extends BizEntity implements Journaled {
      * @return all corresponding {@link Waypoint waypoints} of the geocache.
      */
     public List<Waypoint> getWaypoints() {
-        return oma.select(Waypoint.class).eq(Waypoint.GEOCACHE, this).orderAsc(Waypoint.WAYPOINT_TYPE).queryList();
+        List<Waypoint> waypoints = new ArrayList<>();
+        oma.select(Waypoint.class)
+           .eq(Waypoint.GEOCACHE, this)
+           .orderAsc(Waypoint.WAYPOINT_TYPE)
+           .iterateAll(waypoints::add);
+        return waypoints;
     }
 
     /**
@@ -230,7 +270,6 @@ public class Geocache extends BizEntity implements Journaled {
         return difficulty;
     }
 
-    //TODO check valid values
     public void setDifficulty(Amount difficulty) {
         this.difficulty = difficulty;
     }
@@ -239,7 +278,6 @@ public class Geocache extends BizEntity implements Journaled {
         return terrain;
     }
 
-    //TODO check valid values
     public void setTerrain(Amount terrain) {
         this.terrain = terrain;
     }

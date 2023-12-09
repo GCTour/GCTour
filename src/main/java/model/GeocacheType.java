@@ -3,7 +3,7 @@ package model;
 import sirius.kernel.nls.NLS;
 
 /**
- * All available types of caches
+ * All available types of geocaches for <a href="https://geocaching.com>Geocaching.com</a>
  *
  * @see <a href="https://api.groundspeak.com/documentation#geocache-types">Groundspeak API Documentation</a>
  */

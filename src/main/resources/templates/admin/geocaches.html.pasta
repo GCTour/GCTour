@@ -1,7 +1,7 @@
 <i:arg type="Page" name="geocaches"/>
 <i:arg type="Tuple" name="northWestCorner"/>
 <i:arg type="Tuple" name="southEastCorner"/>
-<w:page titleKey="Geocache.plural">
+<t:page titleKey="Geocache.plural">
     <i:block name="head">
         <script type="text/javascript" src="/assets/javascript/leaflet/leaflet.js"></script>
         <script type="text/javascript" src="/assets/javascript/client.js"></script>
@@ -14,68 +14,125 @@
         </li>
     </i:block>
 
-    <w:pageHeader titleKey="Geocache.plural"/>
+    <i:block name="page-header">
+        <t:pageHeader>
+            <i:block name="title">@i18n("Geocache.plural")</i:block>
+            <i:block name="actions">
+                <div class="d-xl-none">
+                    <a class="btn btn-link ml-1 map-button-js" title="Karte anzeigen" aria-hidden="true">
+                        <i class="fas fa-map"></i>
+                    </a>
+                </div>
+            </i:block>
+        </t:pageHeader>
+    </i:block>
 
-    <w:facetSidebar page="@geocaches" baseUrl="/geocaches">
-        <w:tableSearchHeader page="geocaches" baseUrl="/geocaches">
+    <t:sidebar>
+        <i:block name="sidebar">
+            <t:filterbox page="geocaches" baseUrl="/geocaches"/>
+        </i:block>
+        <t:searchHeader page="geocaches" baseUrl="/geocaches"/>
 
-        </w:tableSearchHeader>
 
-        <div id="map"></div>
-        <span class="mt-auto legend legend-small">@geocaches.getTotal() Geocaches sind in GCTour gespeichert</span>
+        <t:emptyCheck data="geocaches">
+            <i:block name="empty">
+                <span class="h5 mb-4">Es gibt keine Geocaches.</span>
+            </i:block>
 
-        <w:table data="geocaches">
-            <thead>
-            <tr>
-                <th>Typ</th>
-                <th>GC-Code</th>
-                <th>Name</th>
-                <th>Listing-Koordinaten</th>
-                <th>Größe</th>
-                <th>D-Wertung</th>
-                <th>T-Wertung</th>
-            </tr>
-            </thead>
-            <tbody>
-            <i:for type="model.Geocache" var="geocache" items="geocaches.getItems()">
-                <tr>
-                    <td>
-                        <img src="@geocache.getType().getIconUrl()" height="20px">
-                    </td>
-                    <td>
-                        <a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>
-                    <td>
-                        <a href="/geocache/@geocache.getGcCode()">@geocache.getName()</a>
-                    </td>
-                    <td class="text-nowrap">
-                        <a href="javascript:map.flyTo(['@geocache.getListingWaypoint().getLatitude().getAmount()', '@geocache.getListingWaypoint().getLongitude().getAmount()'], 15)">
-                            @geocache.getListingWaypoint().getCoordinates()
-                        </a>
-                    </td>
-                    <td><img src="@geocache.getSize().getIconUrl()" title="@geocache.getSize()"/></td>
-                    <td>@geocache.getDifficulty()</td>
-                    <td>@geocache.getTerrain()</td>
-                </tr>
-                <script>
-                    $(document).ready(function () {
-                        let icon = L.icon({
-                            iconUrl: '@geocache.getType().getIconUrl()',
-                            iconSize: [20, 20],
-                            iconAnchor: [10, 10]
+            <i:block name="filtered-empty">
+                <span class="h5 mb-4">Es gibt keine Geocaches mit dem Suchbegriff.</span>
+            </i:block>
+
+            <div class="card mb-4">
+                <div class="card-body">
+
+                    <script>
+                        sirius.ready(function () {
+                            map = initMap();
+                            map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                                [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+
+                            let _menuButton = document.querySelector('.map-button-js');
+                            let _map = document.querySelector('.map-js');
+
+                            _menuButton.classList.remove("d-none");
+                            _menuButton.classList.add("d-lg-block");
+                            _menuButton.addEventListener('click', function () {
+                                if (_menuButton.classList.contains('active')) {
+                                    _map.classList.add('d-none');
+                                    _menuButton.classList.remove('active');
+                                } else {
+                                    _map.classList.remove('d-none');
+                                    _menuButton.classList.add('active');
+                                    map.invalidateSize();
+                                    map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                                        [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+                                }
+                            });
                         });
-                        L.marker([@geocache.getListingWaypoint().getLatitude().getAmount(), @geocache.getListingWaypoint().getLongitude().getAmount()],
-                            {icon: icon}).addTo(map).bindPopup('<a href="/geocache/@geocache.getGcCode()">@geocache.getName()</br><a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>');
-                    });
-                </script>
-            </i:for>
-            </tbody>
-        </w:table>
-        <script>
-            $(document).ready(function () {
-                map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
-                    [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
-            });
-        </script>
-        <w:pagination page="geocaches" baseUrl="/geocaches"/>
-    </w:facetSidebar>
-</w:page>
+                    </script>
+
+                    <div id="map" class="d-none d-xl-block map-js"></div>
+
+                    <table class="table table-striped">
+                        <thead class="table-header thead-light">
+                        <tr>
+                            <th scope="col">Typ</th>
+                            <th scope="col">GC-Code</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Listing-Koordinaten</th>
+                            <th scope="col">Größe</th>
+                            <th scope="col">D-Wertung</th>
+                            <th scope="col">T-Wertung</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <i:for type="model.Geocache" var="geocache" items="geocaches.getItems()">
+                            <tr>
+                                <td>
+                                    <img src="@geocache.getType().getIconUrl()" height="20px">
+                                </td>
+                                <td>
+                                    <a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>
+                                <td>
+                                    <a href="/geocache/@geocache.getGcCode()">@geocache.getName()</a>
+                                </td>
+                                <td class="text-nowrap">
+                                    <i:if test="@geocache.getListingWaypoint() == null">
+                                        Der Geocache hat keinen Listing-Wegpunkt.
+                                    </i:if>
+                                    <a href="javascript:map.flyTo(['@geocache.getListingWaypoint().getLatitude().getAmount()', '@geocache.getListingWaypoint().getLongitude().getAmount()'], 15)">
+                                        @geocache.getListingWaypoint().getCoordinates()
+                                    </a>
+                                </td>
+                                <td><img alt="geocache.getSize()" src="@geocache.getSize().getIconUrl()"
+                                         title="@geocache.getSize()"/></td>
+                                <td>@geocache.getDifficulty()</td>
+                                <td>@geocache.getTerrain()</td>
+                            </tr>
+                            <script>
+                                sirius.ready(function () {
+                                    let icon = L.icon({
+                                        iconUrl: '@geocache.getType().getIconUrl()',
+                                        iconSize: [20, 20],
+                                        iconAnchor: [10, 10]
+                                    });
+                                    L.marker([@geocache.getListingWaypoint().getLatitude().getAmount(), @geocache.getListingWaypoint().getLongitude().getAmount()],
+                                        {icon: icon}).addTo(map).bindPopup('<a href="/geocache/@geocache.getGcCode()">@geocache.getName()</br><a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>');
+                                });
+                            </script>
+                        </i:for>
+                        </tbody>
+                    </table>
+                    <script>
+                        sirius.ready(function () {
+                            map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                                [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+                        });
+                    </script>
+                </div>
+            </div>
+            <t:pagination page="geocaches" baseUrl="/geocaches"/>
+        </t:emptyCheck>
+    </t:sidebar>
+</t:page>

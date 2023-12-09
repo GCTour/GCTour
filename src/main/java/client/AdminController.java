@@ -1,7 +1,12 @@
 package client;
 
 import model.Geocache;
-import sirius.biz.codelists.jdbc.SQLCodeLists;
+import model.GeocacheSize;
+import model.GeocacheType;
+import model.Tour;
+import model.Waypoint;
+import model.WaypointInTour;
+import model.WaypointType;
 import sirius.biz.web.BizController;
 import sirius.biz.web.SQLPageHelper;
 import sirius.db.jdbc.SmartQuery;
@@ -9,75 +14,229 @@ import sirius.db.jdbc.constraints.SQLConstraint;
 import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.Tuple;
-import sirius.kernel.di.std.Part;
 import sirius.kernel.di.std.Register;
-import sirius.web.controller.Facet;
 import sirius.web.controller.Page;
 import sirius.web.controller.Routed;
 import sirius.web.http.WebContext;
 import sirius.web.security.LoginRequired;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
- * Provides a route to login to the backend page
+ * Provides admin-routes for testing
  */
-@Deprecated
 @Register
 public class AdminController extends BizController {
 
-    @Part
-    private static SQLCodeLists codeLists;
+    @LoginRequired
+    @Routed("/insert-empty-tour")
+    public void testEmptyTour(WebContext ctx) {
+        Tour tour = new Tour();
+        tour.setName("Empty Test-Tour");
+        oma.update(tour);
+        ctx.respondWith().redirectToGet("/tours");
+    }
+
+    @LoginRequired
+    @Routed("/insert-small-tour")
+    public void testSmallTour(WebContext ctx) {
+        Random random = new Random();
+        Tour tour = new Tour();
+        tour.setName("Test-Tour-Klein" + random.nextInt());
+        oma.update(tour);
+
+        for (int i = 0; i < 12; i++) {
+            Geocache geocache = new Geocache();
+            geocache.setGcCode(Geocache.convertIdToGcCode(i + 1 + random.nextInt(999999)));
+            geocache.setName("Test-Cache-Klein" + (i + 1 + random.nextInt(999999)));
+            geocache.setDifficulty(Amount.of(5));
+            geocache.setTerrain(Amount.of(5));
+            geocache.setSize(GeocacheSize.MICRO);
+            geocache.setType(GeocacheType.TRADITIONAL);
+            oma.update(geocache);
+
+            Waypoint original = new Waypoint();
+            original.setLatitude(Amount.of(random.nextDouble() + 48.5));
+            original.setLongitude(Amount.of(random.nextDouble() + 9.3));
+            original.setWaypointType(WaypointType.ORIGINAL);
+            original.getGeocache().setValue(geocache);
+            oma.update(original);
+
+            WaypointInTour waypointInTour = new WaypointInTour();
+            waypointInTour.setPosition(i + 1);
+            waypointInTour.getWaypoint().setValue(original);
+            waypointInTour.getTour().setValue(tour);
+            oma.update(waypointInTour);
+        }
+        ctx.respondWith().redirectToGet("/tours");
+    }
+
+    @LoginRequired
+    @Routed("/insert-small-wp-tour")
+    public void testSmallWpTour(WebContext ctx) {
+        Random random = new Random();
+        Tour tour = new Tour();
+        tour.setName("Test-Tour-Klein-Mit-WP" + random.nextInt());
+        oma.update(tour);
+
+        for (int i = 0; i < 12; i++) {
+            Geocache geocache = new Geocache();
+            geocache.setGcCode(Geocache.convertIdToGcCode(i + 1 + random.nextInt(999999)));
+            geocache.setName("Test-Cache-Klein" + (i + 1 + random.nextInt(999999)));
+            geocache.setDifficulty(Amount.of(5));
+            geocache.setTerrain(Amount.of(5));
+            geocache.setSize(GeocacheSize.MICRO);
+            geocache.setType(GeocacheType.TRADITIONAL);
+            oma.update(geocache);
+
+            Waypoint original = new Waypoint();
+            original.setLatitude(Amount.of(random.nextDouble() + 48.5));
+            original.setLongitude(Amount.of(random.nextDouble() + 9.3));
+            original.setWaypointType(WaypointType.ORIGINAL);
+            original.getGeocache().setValue(geocache);
+            oma.update(original);
+
+            Waypoint s1 = new Waypoint();
+            s1.setLatitude(Amount.of(random.nextDouble() + 48.5));
+            s1.setLongitude(Amount.of(random.nextDouble() + 9.3));
+            s1.setWaypointType(WaypointType.VIRTUAL_STAGE);
+            s1.getGeocache().setValue(geocache);
+            oma.update(s1);
+
+            Waypoint p = new Waypoint();
+            p.setLatitude(Amount.of(random.nextDouble() + 48.5));
+            p.setLongitude(Amount.of(random.nextDouble() + 9.3));
+            p.setWaypointType(WaypointType.PARKING_AREA);
+            p.getGeocache().setValue(geocache);
+            oma.update(p);
+
+            Waypoint s2 = new Waypoint();
+            s2.setLatitude(Amount.of(random.nextDouble() + 48.5));
+            s2.setLongitude(Amount.of(random.nextDouble() + 9.3));
+            s2.setWaypointType(WaypointType.PHYSICAL_STAGE);
+            s2.getGeocache().setValue(geocache);
+            oma.update(s2);
+
+            Waypoint s3 = new Waypoint();
+            s3.setLatitude(Amount.of(random.nextDouble() + 48.5));
+            s3.setLongitude(Amount.of(random.nextDouble() + 9.3));
+            s3.setWaypointType(WaypointType.TRAILHEAD);
+            s3.getGeocache().setValue(geocache);
+            oma.update(s3);
+
+            Waypoint own = new Waypoint();
+            own.setLatitude(Amount.of(random.nextDouble() + 48.5));
+            own.setLongitude(Amount.of(random.nextDouble() + 9.3));
+            own.setWaypointType(WaypointType.ORIGINAL);
+            oma.update(own);
+
+            WaypointInTour waypointInTour = new WaypointInTour();
+            waypointInTour.setPosition(i + 1);
+            waypointInTour.getWaypoint().setValue(original);
+            waypointInTour.getTour().setValue(tour);
+            oma.update(waypointInTour);
+
+            i++;
+
+            WaypointInTour pinTour = new WaypointInTour();
+            pinTour.setPosition(i + 1);
+            pinTour.getWaypoint().setValue(p);
+            pinTour.getTour().setValue(tour);
+            oma.update(pinTour);
+
+            i++;
+
+            WaypointInTour s1inTour = new WaypointInTour();
+            s1inTour.setPosition(i + 1);
+            s1inTour.getWaypoint().setValue(s1);
+            s1inTour.getTour().setValue(tour);
+            oma.update(s1inTour);
+
+            i++;
+
+            WaypointInTour s2inTour = new WaypointInTour();
+            s2inTour.setPosition(i + 1);
+            s2inTour.getWaypoint().setValue(s2);
+            s2inTour.getTour().setValue(tour);
+            oma.update(s2inTour);
+
+            i++;
+
+            WaypointInTour s3InTour = new WaypointInTour();
+            s3InTour.setPosition(i + 1);
+            s3InTour.getWaypoint().setValue(s3);
+            s3InTour.getTour().setValue(tour);
+            oma.update(s3InTour);
+
+            i++;
+
+            WaypointInTour ownInTour = new WaypointInTour();
+            ownInTour.setPosition(i + 1);
+            ownInTour.getWaypoint().setValue(own);
+            ownInTour.getTour().setValue(tour);
+            oma.update(ownInTour);
+
+            i++;
+        }
+        ctx.respondWith().redirectToGet("/tours");
+    }
+
+    @LoginRequired
+    @Routed("/insert-big-tour")
+    public void testBigTour(WebContext ctx) {
+        Random random = new Random();
+        Tour tour = new Tour();
+        tour.setName("Test-Tour");
+        oma.update(tour);
+
+        for (int i = 0; i < 1234; i++) {
+            Geocache geocache = new Geocache();
+            geocache.setGcCode(Geocache.convertIdToGcCode(i + 1 + random.nextInt(999999)));
+            geocache.setName("Test-Cache" + (i + 1 + random.nextInt(999999)));
+            geocache.setDifficulty(Amount.of(5));
+            geocache.setTerrain(Amount.of(5));
+            geocache.setSize(GeocacheSize.MICRO);
+            geocache.setType(GeocacheType.TRADITIONAL);
+            oma.update(geocache);
+
+            Waypoint original = new Waypoint();
+            original.setLatitude(Amount.of(random.nextDouble() + 48.5));
+            original.setLongitude(Amount.of(random.nextDouble() + 9.3));
+            original.setWaypointType(WaypointType.ORIGINAL);
+            original.getGeocache().setValue(geocache);
+            oma.update(original);
+
+            WaypointInTour waypointInTour = new WaypointInTour();
+            waypointInTour.setPosition(i + 1);
+            waypointInTour.getWaypoint().setValue(original);
+            waypointInTour.getTour().setValue(tour);
+            oma.update(waypointInTour);
+        }
+        ctx.respondWith().redirectToGet("/tours");
+    }
 
     /**
      * Simple route that calls the pasta template containing the name chooser.
      *
-     * @param webContext the context of the web request
+     * @param ctx the context of the web request
      */
     @LoginRequired
     @Routed("/admin")
-    public void admin(@Nonnull WebContext webContext) {
-        Amount minLat = Amount.ofMachineString(webContext.getParameter("minLat"));
-        Amount maxLat = Amount.ofMachineString(webContext.getParameter("maxLat"));
-        Amount minLon = Amount.ofMachineString(webContext.getParameter("minLon"));
-        Amount maxLon = Amount.ofMachineString(webContext.getParameter("maxLon"));
+    public void admin(WebContext ctx) {
+        Amount minLat = Amount.ofMachineString(ctx.getParameter("minLat"));
+        Amount maxLat = Amount.ofMachineString(ctx.getParameter("maxLat"));
+        Amount minLon = Amount.ofMachineString(ctx.getParameter("minLon"));
+        Amount maxLon = Amount.ofMachineString(ctx.getParameter("maxLon"));
         SmartQuery<Geocache> smartQuery = oma.select(Geocache.class);
 
         smartQuery.orderAsc(Geocache.GC_ID);
 
         SQLPageHelper<Geocache> pageHelper = SQLPageHelper.withQuery(smartQuery)
-                                                               .withContext(webContext)
-                                                               .withSearchFields(QueryField.contains(Geocache.GC_CODE),
-                                                                                 QueryField.contains(Geocache.NAME));
-        Facet dFacet = new Facet("D-Wertung",
-                                 Geocache.DIFFICULTY.getName(),
-                                 webContext.get("difficulty").asString(),
-                                 null);
-        dFacet.addItem("1.0", "1.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.ONE).count());
-        dFacet.addItem("1.5", "1.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(1.5)).count());
-        dFacet.addItem("2.0", "2.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(2)).count());
-        dFacet.addItem("2.5", "2.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(2.5)).count());
-        dFacet.addItem("3.0", "3.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(3)).count());
-        dFacet.addItem("3.5", "3.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(3.5)).count());
-        dFacet.addItem("4.0", "4.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(4)).count());
-        dFacet.addItem("4.5", "4.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(4.5)).count());
-        dFacet.addItem("5.0", "5.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(5)).count());
-        pageHelper.addFilterFacet(dFacet);
-
-        Facet tFacet =
-                new Facet("T-Wertung", Geocache.TERRAIN.getName(), webContext.get("terrain").asString(), null);
-        tFacet.addItem("1.0", "1.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.ONE).count());
-        tFacet.addItem("1.5", "1.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(1.5)).count());
-        tFacet.addItem("2.0", "2.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(2)).count());
-        tFacet.addItem("2.5", "2.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(2.5)).count());
-        tFacet.addItem("3.0", "3.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(3)).count());
-        tFacet.addItem("3.5", "3.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(3.5)).count());
-        tFacet.addItem("4.0", "4.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(4)).count());
-        tFacet.addItem("4.5", "4.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(4.5)).count());
-        tFacet.addItem("5.0", "5.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(5)).count());
-        pageHelper.addFilterFacet(tFacet);
+                                                          .withContext(ctx)
+                                                          .withSearchFields(QueryField.contains(Geocache.GC_CODE),
+                                                                            QueryField.contains(Geocache.NAME));
 
         pageHelper.addQueryFacet(Geocache.TYPE.getName(),
                                  "Typ",
@@ -94,6 +253,10 @@ public class AdminController extends BizController {
         Page<Geocache> page =
                 pageHelper.withPageSize(999).asPage().withPageSize(999).withTotalItems((int) smartQuery.count());
 
-        webContext.respondWith().template("/templates/admin/geocaches.html.pasta", page, new Tuple<>(54.00, 8.00), new Tuple<>(45.00, 12.00));
+        ctx.respondWith()
+           .template("/templates/admin/geocaches.html.pasta",
+                     page,
+                     new Tuple<>(55.00, 8.00),
+                     new Tuple<>(46.00, 12.00));
     }
 }

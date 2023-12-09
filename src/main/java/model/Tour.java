@@ -7,6 +7,7 @@ import sirius.biz.protocol.JournalData;
 import sirius.biz.protocol.Journaled;
 import sirius.biz.protocol.NoJournal;
 import sirius.biz.web.Autoloaded;
+import sirius.db.mixing.BaseEntity;
 import sirius.db.mixing.Mapping;
 import sirius.db.mixing.annotations.BeforeSave;
 import sirius.db.mixing.annotations.Index;
@@ -20,7 +21,7 @@ import java.util.HashSet;
 /**
  *
  */
-@Index(name = "tour_index", columns = {"webcode"}, unique = true)
+@Index(name = "tour_index", columns = "webcode", unique = true)
 public class Tour extends BizEntity implements Journaled {
 
     /**
@@ -94,29 +95,21 @@ public class Tour extends BizEntity implements Journaled {
      * @return hom many own waypoints are in the tour.
      */
     public long getOwnWaypointCount() {
-        HashSet<Waypoint> ownWaypoints = new HashSet<>(Collections.emptySet());
-        oma.select(WaypointInTour.class).eq(WaypointInTour.TOUR, this).iterateAll(ownWaypointsInTour -> {
-            Waypoint ownWaypoint = ownWaypointsInTour.getWaypoint().fetchValue();
-            if (ownWaypoint.getWaypointType() == WaypointType.OWN_WAYPOINT) {
-                ownWaypoints.add(ownWaypoint);
-            }
-        });
-        return ownWaypoints.size();
+        return oma.select(WaypointInTour.class)
+                  .eq(WaypointInTour.TOUR, this)
+                  .eq(WaypointInTour.WAYPOINT.join(Waypoint.WAYPOINT_TYPE), WaypointType.OWN_WAYPOINT)
+                  .count();
     }
 
     /**
-     * @return hom many different geocaches are referenced in the tour.
+     * @return hom many geocaches are referenced in the tour.
      */
     public long getGeocacheCount() {
-        HashSet<Geocache> geocaches = new HashSet<>(Collections.emptySet());
-
-        oma.select(WaypointInTour.class).eq(WaypointInTour.TOUR, this).iterateAll(waypointInTour -> {
-            Geocache geocache = waypointInTour.getWaypoint().fetchValue().getGeocache().fetchValue();
-            if (geocache != null) {
-                geocaches.add(geocache);
-            }
-        });
-        return geocaches.size();
+        return oma.select(WaypointInTour.class)
+                  .eq(WaypointInTour.TOUR, this)
+                  .ne(WaypointInTour.WAYPOINT.join(Waypoint.GEOCACHE), null)
+                  .distinctFields(BaseEntity.ID)
+                  .count();
     }
 
     @Override

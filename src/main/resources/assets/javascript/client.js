@@ -1,34 +1,24 @@
-let map;
-let testicon
-
-$(document).ready(function () {
-    map = initMap();
-    map.on('moveend', function () {
-        //alert(map.getBounds().getNorth() + map.getBounds().getEast() + map.getBounds().getSouth() + map.getBounds().getWest())
-    });
-});
-
-function initMap() {
+function initMap(map) {
 
     let osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
     });
 
-    let googleMaps = L.tileLayer("http://mt.google.com/vt?x={x}&y={y}&z={z}", {
+    let googleMaps = L.tileLayer("https://mt.google.com/vt?x={x}&y={y}&z={z}", {
         attribution: "Google Maps",
         tileSize: 256,
         minZoom: 0,
         maxZoom: 20
     });
 
-    let googleMapsSatellite = L.tileLayer("http://mt.google.com/vt?lyrs=s&x={x}&y={y}&z={z}", {
+    let googleMapsSatellite = L.tileLayer("https://mt.google.com/vt?lyrs=s&x={x}&y={y}&z={z}", {
         attribution: "Google Maps",
         tileSize: 256,
         minZoom: 3,
         maxZoom: 20
     });
 
-    let googleMapsHybrid = L.tileLayer("http://mt0.google.com/vt/lyrs=s,m@110&hl=en&x={x}&y={y}&z={z}", {
+    let googleMapsHybrid = L.tileLayer("https://mt0.google.com/vt/lyrs=s,m@110&hl=en&x={x}&y={y}&z={z}", {
         attribution: "Google Maps",
         tileSize: 256,
         minZoom: 0,
@@ -39,7 +29,7 @@ function initMap() {
     let map_layers = {
         "Geocaching": {
             tileUrl: "https://maptiles{s}.geocaching.com/tile/{z}/{x}/{y}.png?token={accessToken}",
-            accessToken: 'asdasdasdsa',
+            accessToken: '',
             subdomains: ['01', '02', '03', '04', '05', '06', '07', '08'],
             minZoom: 0,
             maxZoom: 18
@@ -165,6 +155,7 @@ function initMap() {
         }
     };
 
+    // TODO not working for now... License`?
     let hillshadow = L.tileLayer("http://{s}.tiles.wmflabs.org/hillshading/{z}/{x}/{y}.png", {
         attribution: 'hillshadow \u00a9 <a href="http://tiles.wmflabs.org/" target=\'_blank\'>tiles.wmflabs.org</a>',
         tileSize: 256,
@@ -179,18 +170,19 @@ function initMap() {
         "Google Maps Satellite": googleMapsSatellite,
         "Google Maps Hybrid": googleMapsHybrid
     };
+
     let overlayMaps = {
         "Hillshadow": hillshadow,
     };
 
-    let map = L.map('map', {
+    map = L.map('map', {
         zoom: 12,
         center: [48.8, 9.3],
         layers: [osm],
         scrollWheelZoom: true,
-        dragging: true,
+        dragging: !L.Browser.mobile,
+        tap: !L.Browser.mobile, //disable moving on map for touch to make scrolling on site available
         zoomControl: true,
-        tap: false //disable moving on map for touch to make scrolling on site available
     });
 
     L.control.layers(baseLayers, overlayMaps).addTo(map);

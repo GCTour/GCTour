@@ -42,7 +42,7 @@ public enum WaypointType {
     TRAILHEAD("https://www.geocaching.com/images/wpttypes/trailhead.jpg"),
 
     /**
-     * A reference point e.g. a nearby trainstation
+     * A reference point e.g. a nearby station or bus-stop
      */
     REFERENCE_POINT("https://www.geocaching.com/images/wpttypes/waypoint.jpg"),
 

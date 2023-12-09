@@ -1,5 +1,5 @@
 <i:arg type="Page" name="tours"/>
-<w:page titleKey="Tour.plural">
+<t:page titleKey="Tour.plural">
 
     <i:block name="breadcrumbs">
         <li>
@@ -7,43 +7,67 @@
         </li>
     </i:block>
 
-    <w:pageHeader titleKey="Tour.plural"/>
+    <t:pageHeader titleKey="Tour.plural"/>
 
-    <w:facetSidebar page="@tours" baseUrl="/">
-        <w:tableSearchHeader page="tours" baseUrl="/tours">
 
-        </w:tableSearchHeader>
+    <t:searchHeader page="tours" baseUrl="/tours"/>
+    <t:emptyCheck data="tours">
+        <i:block name="empty">
+            <span class="h5 mb-4">Es gibt (noch) keine Touren.</span>
+        </i:block>
 
-        <span class="mt-auto legend legend-small">@tours.getTotal() Touren (mit dem Suchbegriff) sind in GCTour gespeichert.</span>
-
-        <w:table data="tours">
-            <thead>
-            <tr>
-                <th>Name</th>
-                <th>Webcode</th>
-                <th>Anzahl Geocaches</th>
-                <th>Anzahl Wegpunkte gesamt</th>
-                <th>Davon Eigene Wegpunkte</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <i:for type="model.Tour" var="tour" items="tours.getItems()">
-                <tr>
-                    <td>@tour.getName()</td>
-                    <td>
-                        <a href="/tour/@tour.getWebcode()">@tour.getWebcode()</a>
-                    </td>
-                    <td>@tour.getGeocacheCount()</td>
-                    <td>@tour.getWaypointCount()</td>
-                    <td>@tour.getOwnWaypointCount()</td>
-                    <td>
-                        <w:deleteLink url="@apply('/tour/%s/delete', tour.getWebcode())" page="@tours"/>
-                    </td>
-                </tr>
-            </i:for>
-            </tbody>
-        </w:table>
-        <w:pagination page="tours" baseUrl="/tours"/>
-    </w:facetSidebar>
-</w:page>
+        <div class="card mb-4">
+            <div class="card-body overflow-auto">
+                <table class="table table-striped">
+                    <thead class="table-header thead-light">
+                    <tr>
+                        <th>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="row">
+                                        <div class="col-sm-4">Webcode</div>
+                                        <div class="col-sm-4">Geocaches</div>
+                                        <div class="col-sm-4">Wegpunkte</div>
+                                    </div>
+                                    <div class="row">
+                                        <small class="text-muted col-sm-8">Name</small>
+                                        <small class="text-muted col-sm-4">davon eigene</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <i:for type="model.Tour" var="tour" items="tours.getItems()">
+                        <tr>
+                            <td>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="row">
+                                            <div class="col-4">
+                                                <a href="/tour/@tour.getWebcode()">@tour.getWebcode()</a>
+                                            </div>
+                                            <div class="col-4 text-small">@tour.getGeocacheCount()</div>
+                                            <div class="col-4 text-small">@tour.getWaypointCount()</div>
+                                        </div>
+                                        <div class="row">
+                                            <small class="muted col-8" style="overflow-wrap: anywhere">
+                                                @tour.getName()
+                                            </small>
+                                            <div class="muted col-4 text-muted text-small">
+                                                @tour.getOwnWaypointCount()
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </i:for>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <t:pagination page="tours" baseUrl="/tours"/>
+    </t:emptyCheck>
+</t:page>

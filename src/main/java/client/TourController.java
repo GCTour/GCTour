@@ -11,11 +11,14 @@ import model.Waypoint;
 import model.WaypointInTour;
 import model.WaypointType;
 import sirius.biz.protocol.TraceData;
+import sirius.biz.protocol.Traced;
 import sirius.biz.web.BizController;
 import sirius.biz.web.SQLPageHelper;
+import sirius.db.jdbc.OMA;
 import sirius.db.jdbc.SmartQuery;
 import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.Amount;
+import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Register;
 import sirius.web.controller.DefaultRoute;
@@ -28,6 +31,7 @@ import sirius.web.security.UserContext;
 import sirius.web.services.InternalService;
 import sirius.web.services.JSONStructuredOutput;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -71,24 +75,83 @@ public class TourController extends BizController {
     /**
      * Deletes a {@link Tour}
      *
-     * @param ctx the current request
+     * @param ctx     the current request
+     * @param webcode the {@link Tour} to delete
      */
-    @LoginRequired
     @Routed("/tour/:1/delete")
     public void deleteTour(WebContext ctx, String webcode) {
         oma.delete(oma.select(Tour.class).eq(Tour.WEBCODE, webcode).queryFirst());
-        showAllTours(ctx);
+        UserContext.message(Message.info().withTextMessage("Die Tour wurde erfoglreich gelöscht."));
+        if (UserContext.getCurrentUser().isLoggedIn()) {
+            ctx.respondWith().redirectToGet("/tours");
+        }
+        ctx.respondWith().redirectToGet("/");
+    }
+
+    /**
+     * Deletes a {@link WaypointInTour} from a {@link Tour}
+     *
+     * @param ctx      the current request
+     * @param webcode  the {@link Tour} to edit
+     * @param position the position of the {@link WaypointInTour} to remove from the given {@link Tour}
+     */
+    @Routed("/tour/:1/:2/delete")
+    public void deleteWaypointFromTour(WebContext ctx, String webcode, int position) {
+        Tour tour = oma.select(Tour.class).eq(Tour.WEBCODE, webcode).queryFirst();
+        oma.delete(oma.select(WaypointInTour.class)
+                      .eq(WaypointInTour.TOUR, tour)
+                      .eq(WaypointInTour.POSITION, position)
+                      .queryFirst());
+        oma.select(WaypointInTour.class)
+           .eq(WaypointInTour.TOUR, tour)
+           .where(OMA.FILTERS.gt(WaypointInTour.POSITION, position))
+           .orderAsc(WaypointInTour.POSITION)
+           .iterateAll(waypointInTour -> {
+               waypointInTour.setPosition(waypointInTour.getPosition() - 1);
+               oma.update(waypointInTour);
+           });
+        UserContext.message(Message.info().withTextMessage("Der Wegpunkt wurde aus der Tour gelöscht."));
+        ctx.respondWith().redirectToGet("/tour/" + webcode);
+    }
+
+    /**
+     * Renames a {@link Tour}
+     *
+     * @param ctx     the current request
+     * @param webcode the {@link Tour} to rename
+     */
+    @Routed("/tour/:1/rename")
+    public void renameTour(WebContext ctx, String webcode) {
+        Tour tour = oma.select(Tour.class).eq(Tour.WEBCODE, webcode).queryFirst();
+        String name = ctx.getParameter("name");
+        if (Strings.isEmpty(name)) {
+            tour.setName(webcode);
+            UserContext.message(Message.warn()
+                                       .withTextMessage(
+                                               "Die Tour wurde umbenannt, der Name wurde jedoch auf den Webcode gesetzt, da er leer war."));
+        } else if (name.length() > 50) {
+            tour.setName(ctx.getParameter("name").substring(0, 50));
+            UserContext.message(Message.warn()
+                                       .withTextMessage(
+                                               "Die Tour wurde umbenannt, der Name wurde jedoch auf 50 Zeichen gekürzt."));
+        } else {
+            tour.setName(ctx.getParameter("name"));
+            UserContext.message(Message.info().withTextMessage("Die Tour wurde erfolgreich umbenannt."));
+        }
+        oma.update(tour);
+        ctx.respondWith().redirectToGet("/tour/" + webcode);
     }
 
     /**
      * Shows the detailed view of a {@link Tour}
      *
-     * @param ctx the current request
+     * @param ctx     the current request
+     * @param webcode the requested {@link Tour}
      */
     @DefaultRoute
     @Routed("/tour/:1")
     public void showTour(WebContext ctx, String webcode) {
-        if (webcode == null || webcode.isEmpty()) {
+        if (Strings.isEmpty(webcode)) {
             ctx.respondWith().template("/templates/index.html.pasta", new Page<Tour>());
             return;
         }
@@ -101,7 +164,12 @@ public class TourController extends BizController {
             ctx.respondWith().template(HttpResponseStatus.NOT_FOUND, "/templates/index.html.pasta", new Page<Tour>());
             return;
         }
-        Page<WaypointInTour> waypointsInTour = getWaypointsInTour(ctx, tour.get());
+        List<WaypointInTour> waypointsInTour = new ArrayList<>(Collections.emptyList());
+        oma.select(WaypointInTour.class)
+           .eq(WaypointInTour.TOUR, tour.get())
+           .orderAsc(WaypointInTour.POSITION)
+           .iterateAll(waypointsInTour::add);
+
         Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypointsInTour);
         ctx.respondWith()
            .template("/templates/tour.html.pasta",
@@ -137,7 +205,10 @@ public class TourController extends BizController {
 
         if (!saveAsNewTour && oldTour.isPresent()) {
             tour = oldTour.get();
-            oma.select(WaypointInTour.class).eq(WaypointInTour.TOUR, tour).iterateAll(oldWaypointsInTour::add);
+            oma.select(WaypointInTour.class)
+               .eq(WaypointInTour.TOUR, tour)
+               .orderAsc(WaypointInTour.POSITION)
+               .iterateAll(oldWaypointsInTour::add);
         }
         tour.setName(tourName);
         oma.update(tour);
@@ -251,7 +322,7 @@ public class TourController extends BizController {
     private void showAllTours(WebContext ctx) {
         SmartQuery<Tour> smartQuery = oma.select(Tour.class);
 
-        smartQuery.orderDesc(Tour.TRACE.inner(TraceData.CREATED_AT));
+        smartQuery.orderDesc(Traced.TRACE.inner(TraceData.CREATED_AT));
 
         SQLPageHelper<Tour> pageHelper = SQLPageHelper.withQuery(smartQuery)
                                                       .withContext(ctx)
@@ -261,35 +332,26 @@ public class TourController extends BizController {
         ctx.respondWith().template("/templates/admin/tours.html.pasta", page);
     }
 
-    private Page<WaypointInTour> getWaypointsInTour(WebContext ctx, Tour tour) {
-        SmartQuery<WaypointInTour> smartQuery = oma.select(WaypointInTour.class).eq(WaypointInTour.TOUR, tour);
-
-        smartQuery.orderAsc(WaypointInTour.POSITION);
-
-        SQLPageHelper<WaypointInTour> pageHelper = SQLPageHelper.withQuery(smartQuery).withContext(ctx);
-        return pageHelper.withPageSize(500).asPage().withTotalItems((int) smartQuery.count());
-    }
-
-    private Tuple<Tuple<Double, Double>, Tuple<Double, Double>> getMapBounds(Page<WaypointInTour> waypointsInTour) {
+    private Tuple<Tuple<Double, Double>, Tuple<Double, Double>> getMapBounds(List<WaypointInTour> waypointsInTour) {
         double nwLatitude = 0;
         double nwLongitude = 0;
         double seLatitude = 0;
         double seLongitude = 0;
-        if (waypointsInTour.getItems().isEmpty()) {
+        if (waypointsInTour.isEmpty()) {
             return new Tuple<>(new Tuple<>(nwLatitude, nwLongitude), new Tuple<>(seLatitude, seLongitude));
         }
-        Waypoint firstWaypoint = waypointsInTour.getItems().get(0).getWaypoint().fetchValue();
+        Waypoint firstWaypoint = waypointsInTour.get(0).getWaypoint().fetchValue();
         nwLatitude = firstWaypoint.getLatitude().getAmount().doubleValue();
         nwLongitude = firstWaypoint.getLongitude().getAmount().doubleValue();
         seLatitude = firstWaypoint.getLatitude().getAmount().doubleValue();
         seLongitude = firstWaypoint.getLongitude().getAmount().doubleValue();
 
-        if (waypointsInTour.getItems().size() == 1) {
+        if (waypointsInTour.size() == 1) {
             return new Tuple<>(new Tuple<>(nwLatitude, nwLongitude), new Tuple<>(seLatitude, seLongitude));
         }
 
-        for (int i = 0; i < waypointsInTour.getItems().size(); i++) {
-            Waypoint waypoint = waypointsInTour.getItems().get(i).getWaypoint().fetchValue();
+        for (int i = 0; i < waypointsInTour.size(); i++) {
+            Waypoint waypoint = waypointsInTour.get(i).getWaypoint().fetchValue();
             double latitude = waypoint.getLatitude().getAmount().doubleValue();
             double longitude = waypoint.getLongitude().getAmount().doubleValue();
             if (latitude > nwLatitude) {

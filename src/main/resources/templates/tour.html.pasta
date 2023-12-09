@@ -1,99 +1,270 @@
 <i:arg type="Tour" name="tour"/>
-<i:arg type="Page" name="waypointsInTour"/>
+<i:arg type="List" name="waypointsInTour"/>
 <i:arg type="Tuple" name="northWestCorner"/>
 <i:arg type="Tuple" name="southEastCorner"/>
 
-<w:page title="@tour.toString()">
+<t:page title="@tour.toString()">
     <i:block name="head">
         <script type="text/javascript" src="/assets/javascript/leaflet/leaflet.js"></script>
         <script type="text/javascript" src="/assets/javascript/client.js"></script>
         <link rel="stylesheet" href="/assets/javascript/leaflet/leaflet.css">
-        <style>
-            .breadcrumb {
-                display: none;
-            }
-        </style>
+        <meta name="viewport" content="width=device-width initial-scale=0.8">
+        <t:permission permission="!flag-logged-in">
+            <style>
+                #page-header {
+                    display: none;
+                }
+            </style>
+        </t:permission>
     </i:block>
 
-    <w:pageHeader title="@tour.toString()">
-        <
-    </w:pageHeader>
+    <i:block name="breadcrumbs">
+        <t:permission permission="flag-logged-in">
+            <li>
+                <a href="/tours">@i18n("Tour.plural")</a>
+            </li>
+            <li>
+                <a href="/tour/@tour.getWebcode()">@tour.getWebcode()</a>
+            </li>
+        </t:permission>
+    </i:block>
 
-    <i:if test="@tour.getWaypointCount() > 0">
-        <div id="map"></div>
-    </i:if>
+    <i:block name="page-header">
+        <t:pageHeader>
+            <i:block name="title">@tour.toString()</i:block>
 
-    <span class="mt-auto legend legend-small">@tour.getGeocacheCount() Caches mit @tour.getWaypointCount() Wegpunkten
-        (davon @tour.getOwnWaypointCount() eigene Wegpunkte) sind in der Tour gespeichert</span>
+            <t:inlineInfo label="Geocaches">@tour.getGeocacheCount()</t:inlineInfo>
+            <t:inlineInfo label="Wegpunkte">@tour.getWaypointCount()</t:inlineInfo>
+            <t:inlineInfo label="Davon eigene">@tour.getOwnWaypointCount()</t:inlineInfo>
+            <t:inlineInfo>
+                <!--TODO wieviele je Typ-->
+            </t:inlineInfo>
 
-    <w:table data="waypointsInTour">
-        <thead>
-        <tr>
-            <th>Position</th>
-            <th>Typ</th>
-            <th>GC-Code</th>
-            <th>Name</th>
-            <th>Größe</th>
-            <th>D-Wertung</th>
-            <th>T-Wertung</th>
-        </tr>
-        </thead>
-        <tbody>
-        <i:for type="model.WaypointInTour" var="waypointInTour" items="waypointsInTour.getItems()">
-            <tr>
-                <i:local name="waypoint" value="@waypointInTour.getWaypoint().fetchValue()"/>
-                <i:local name="geocache" value="@waypoint.getGeocache().fetchValue()"/>
-                <td>@waypointInTour.getPosition()</td>
-                <i:if test="geocache != null">
-                    <td><img src="@geocache.getType().getIconUrl()" height="20px"></td><!--TODO je nach Wegpunkttyp-->
-                    <td>
-                        <a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>
-                    </td>
-                    <td>
-                        <a href="javascript:map.flyTo(['@waypoint.getLatitude().getAmount()', '@waypoint.getLongitude().getAmount()'], 15)">
-                            @geocache.getName()
-                        </a>
-                    </td>
-                    <td><img src="@geocache.getSize().getIconUrl()" title="@geocache.getSize()"></td>
-                    <td>@geocache.getDifficulty()</td><!--TODO Icon?-->
-                    <td>@geocache.getTerrain()</td><!--TODO Icon?-->
-                    <script>
-                        $(document).ready(function () {
-                            let icon = L.icon({
-                                iconUrl: '@geocache.getType().getIconUrl()',
-                                iconSize: [20, 20],
-                                iconAnchor: [10, 10]
-                            });
-                            L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()], {icon: icon})
-                                .addTo(map).bindPopup('@geocache.getName()</br><a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>');
+            <i:block name="actions">
+                <div class="d-xl-none">
+                    <a class="btn btn-link ml-1 map-button-js" title="Karte anzeigen" aria-hidden="true">
+                        <i class="fas fa-map"></i>
+                    </a>
+                </div>
+                <div>
+                    <a class="btn btn-link" href="javascript:window.print()" title="Ausdrucken">
+                        <i class="fas fa-print"></i>
+                        <span class="pl-1 d-none d-xl-inline-block">Ausdrucken</span>
+                        <!--TODO Print-Event, Template, in JS mit eigenem Routenaufruf-->
+                    </a>
+                </div>
+                <div>
+                    <a class="btn btn-link" id="share" title="Teilen">
+                        <i class="fas fa-share-alt"></i>
+                        <span class="pl-1 d-none d-xl-inline-block">Teilen</span>
+                    </a>
+                </div>
+                <div>
+                    <a class="btn btn-link" href="javascript:renameTour()" title="Umbenennen">
+                        <i class="fas fa-pen"></i>
+                        <span class="pl-1 d-none d-xl-inline-block">Umbenennen</span>
+                    </a>
+                </div>
+                <div>
+                    <a class="btn btn-link btn-danger confirm-link-js"
+                       href="@apply('/tour/%s/delete', tour.getWebcode())" title="Löschen">
+                        <i class="fas fa-trash"></i>
+                        <span class="pl-1 d-none d-xl-inline-block">Löschen</span>
+                    </a>
+                </div>
+            </i:block>
+        </t:pageHeader>
+    </i:block>
+
+    <t:emptyCheck data="waypointsInTour">
+        <i:block name="empty">
+            <span class="h5 mb-4">Die Tour enthält (noch) keine Wegpunkte.</span>
+        </i:block>
+
+        <div class="card mb-4">
+            <div class="card-body">
+
+                <script>
+                    sirius.ready(function () {
+                        map = initMap();
+                        map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                            [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+
+                        let _menuButton = document.querySelector('.map-button-js');
+                        let _map = document.querySelector('.map-js');
+
+                        _menuButton.classList.remove("d-none");
+                        _menuButton.classList.add("d-lg-block");
+                        _menuButton.addEventListener('click', function () {
+                            if (_menuButton.classList.contains('active')) {
+                                _map.classList.add('d-none');
+                                _menuButton.classList.remove('active');
+                            } else {
+                                _map.classList.remove('d-none');
+                                _menuButton.classList.add('active');
+                                map.invalidateSize();
+                                map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                                    [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+                            }
                         });
-                    </script>
-                    <i:else>
-                        <td><img src="@waypoint.getWaypointType().getIconUrl()"/></td><!--TODO Wegpunkt-Icons-->
-                        <td colspan="5">
-                            @waypoint.getNote()
-                        </td>
-                        <script>
-                            $(document).ready(function () {
-                                let icon = L.icon({
-                                    iconUrl: '@waypoint.getWaypointType().getIconUrl()',
-                                    iconSize: [20, 20],
-                                    iconAnchor: [10, 10]
-                                });
-                                L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()], {icon: icon}).addTo(map).bindPopup('TODO');
-                            });
-                        </script>
-                    </i:else>
-                </i:if>
-            </tr>
-        </i:for>
-        </tbody>
-    </w:table>
-    <w:pagination page="waypointsInTour" baseUrl="@apply('/tour/%s', tour.getWebcode())"/>
-    <script>
-        $(document).ready(function () {
-            map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
-                [@southEastCorner.getFirst(), @southEastCorner.getSecond()]]);
+                    });
+                </script>
+
+                <div id="map" class="d-none d-xl-block map-js"></div>
+
+                <table class="table table-striped">
+                    <thead class="table-header thead-light">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Typ</th>
+                        <th scope="col">Größe</th>
+                        <th scope="col">D-Wertung</th>
+                        <th scope="col">T-Wertung</th>
+                        <th scope="col">GC-Code</th>
+                        <th scope="col">Name</th>
+                        <th scope="col"><a class="btn btn-link" href="javascript:map.fitBounds([[@northWestCorner.getFirst(), @northWestCorner.getSecond()],
+                    [@southEastCorner.getFirst(), @southEastCorner.getSecond()]])"><i class="fas fa-map"></i></a>
+                        </th>
+                        <th scope="col" class="delete-btn-column"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <i:for type="model.WaypointInTour" var="waypointInTour" items="waypointsInTour">
+                        <tr draggable="true" ondragstart="start()" ondragover="dragover()">
+                            <i:local name="waypoint" value="@waypointInTour.getWaypoint().fetchValue()"/>
+                            <i:local name="geocache" value="@waypoint.getGeocache().fetchValue()"/>
+                            <th scope="row">@waypointInTour.getPosition()</th>
+                            <i:if test="waypoint.getWaypointType() == model.WaypointType.FINAL_LOCATION || waypoint.getWaypointType() == model.WaypointType.ORIGINAL">
+                                <td><img alt="@geocache.getType()" src="@geocache.getType().getIconUrl()"></td>
+                                <script>
+                                    sirius.ready(function () {
+                                        let icon = L.icon({
+                                            iconUrl: '@geocache.getType().getIconUrl()',
+                                            iconSize: [20, 20],
+                                            iconAnchor: [10, 10]
+                                        });
+                                        L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()], {icon: icon})
+                                            .addTo(map).bindPopup('@geocache.getName()</br><a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>');
+                                    });
+                                </script>
+                                <i:else>
+                                    <td><img src="@waypoint.getWaypointType().getIconUrl()"
+                                             alt="@waypoint.getWaypointType()"/>
+                                    </td>
+                                    <script>
+                                        sirius.ready(function () {
+                                            let icon = L.icon({
+                                                iconUrl: '@waypoint.getWaypointType().getIconUrl()',
+                                                iconSize: [20, 20],
+                                                iconAnchor: [10, 10]
+                                            });
+                                            L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()], {icon: icon})
+                                                .addTo(map).bindPopup('@geocache.getName()</br><a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>');
+                                        });
+                                    </script>
+                                </i:else>
+                            </i:if>
+                            <i:if test="geocache != null">
+                                <td><img src="@geocache.getSize().getIconUrl()" title="@geocache.getSize()"></td>
+                                <td>@geocache.getDifficulty()</td><!--TODO Icon?-->
+                                <td>@geocache.getTerrain()</td><!--TODO Icon?-->
+
+                                <td>
+                                    <a href="https://coord.info/@geocache.getGcCode()"
+                                       target="_blank">@geocache.getGcCode()</a>
+                                </td>
+                                <td> @geocache.getName()</td>
+
+                                <i:else>
+                                    <td colspan="5">
+                                        @waypoint.getNote()
+                                    </td>
+                                    <script>
+                                        sirius.ready(function () {
+                                            let icon = L.icon({
+                                                iconUrl: '@waypoint.getWaypointType().getIconUrl()',
+                                                iconSize: [20, 20],
+                                                iconAnchor: [10, 10]
+                                            });
+                                            L.marker([@waypoint.getLatitude().getAmount(), @waypoint.getLongitude().getAmount()],
+                                                {icon: icon}).addTo(map).bindPopup('TODO');
+                                        });
+                                    </script>
+                                </i:else>
+                            </i:if>
+                            <td>
+                                <a class="btn btn-link"
+                                   href="javascript:map.flyTo(['@waypoint.getLatitude().getAmount()', '@waypoint.getLongitude().getAmount()'], 15)"><i
+                                        class="fas fa-map"></i></a>
+                            </td>
+                            <td>
+                                <t:deleteButton
+                                        url="@apply('/tour/%s/%s/delete', tour.getWebcode(), waypointInTour.getPosition())"></t:deleteButton>
+                            </td>
+                        </tr>
+                    </i:for>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script>
+            let row;
+
+            function start() {
+                row = event.target;
+            }
+
+            function dragover() {
+                let e = event;
+                e.preventDefault();
+
+                let children = Array.from(e.target.parentNode.parentNode.children);
+
+                if (children.indexOf(e.target.parentNode) > children.indexOf(row)) {
+                    e.target.parentNode.after(row);
+                } else {
+                    e.target.parentNode.before(row);
+                }
+            }
+        </script>
+    </t:emptyCheck>
+
+    <form id="rename-form" method="post" action="@apply('/tour/%s/rename', tour.getWebcode())">
+        <t:modal name="rename-modal" title="Tour Umbenennen" submitKey="NLS.ok" cancelKey="NLS.cancel">
+            <fieldset>
+                <input name="CSRFToken" value="@part(sirius.web.http.CSRFHelper.class).getCSRFToken()"
+                       type="hidden"/>
+                <t:textfield id="name" name="name" value="@tour.getName()" labelKey="Model.name" class="required"/>
+            </fieldset>
+        </t:modal>
+    </form>
+    <script type="text/javascript">
+        function renameTour() {
+            let modalElement = $("#rename-modal");
+
+            modalElement.on('shown.bs.modal', function () {
+                modalElement.find('#name').focus();
+            }).modal('show');
+        }
+
+        sirius.ready(function () {
+            const _share_btn = document.getElementById('share');
+            if (navigator !== undefined && navigator.share) {
+                _share_btn.addEventListener('click', (function () {
+                    navigator.share({
+                        title: 'Meine GCTour "@tour.getWebcode()"',
+                        text: 'GCTour @tour.getName()',
+                        url: window.location.href,
+                    });
+                }));
+            } else if (navigator !== undefined && navigator.clipboard) {
+                _share_btn.addEventListener('click', (function () {
+                    navigator.clipboard.writeText(window.location.href);
+                    addSuccessMessage('GCTour-Link wurde in die Zwischenablage kopiert.');
+                }));
+            } else {
+                _share_btn.parentNode.remove();
+            }
         });
     </script>
-</w:page>
+</t:page>

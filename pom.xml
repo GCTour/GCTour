@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.scireum</groupId>
         <artifactId>sirius-parent</artifactId>
-        <version>10.0.0</version>
+        <version>10.1.2</version>
     </parent>
     <groupId>com.yannickxy</groupId>
     <artifactId>GCTour</artifactId>
@@ -14,32 +14,12 @@
     <packaging>jar</packaging>
     <name>GCTour</name>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>18</source>
-                    <target>18</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <repositories>
         <repository>
             <id>scireum-mvn</id>
             <url>https://mvn.scireum.com</url>
         </repository>
     </repositories>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>scireum-mvn</id>
-            <url>https://mvn.scireum.com</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <properties>
         <maven.compiler.warnings/>
@@ -49,7 +29,14 @@
         <dependency>
             <groupId>com.scireum</groupId>
             <artifactId>sirius-biz</artifactId>
-            <version>dev-58.2.1</version>
+            <version>dev-79.12.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>4.4.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

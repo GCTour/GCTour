@@ -1,1 +1,31 @@
 $accent-color:    #02874D;
+
+
+// fixed header on mobile
+#wrapper-menu {
+  position: sticky;
+  top: 0px;
+  z-index: 1020;
+  margin-bottom: 0;
+}
+
+// Map
+#map {
+  .leaflet-top {
+    z-index: 400;
+  }
+  .leaflet-bottom {
+    z-index: unset;
+  }
+
+  width: auto;
+  height: 50vh;
+}
+
+
+// Print Tour
+@media print {
+  #wrapper-menu {
+    display: none !important;
+  }
+}

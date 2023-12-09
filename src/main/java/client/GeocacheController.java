@@ -10,7 +10,6 @@ import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.Amount;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Register;
-import sirius.web.controller.Facet;
 import sirius.web.controller.Message;
 import sirius.web.controller.Page;
 import sirius.web.controller.Routed;
@@ -70,29 +69,6 @@ public class GeocacheController extends BizController {
                                                           .withContext(ctx)
                                                           .withSearchFields(QueryField.contains(Geocache.GC_CODE),
                                                                             QueryField.contains(Geocache.NAME));
-        Facet dFacet = new Facet("D-Wertung", Geocache.DIFFICULTY.getName(), ctx.get("difficulty").asString(), null);
-        dFacet.addItem("1.0", "1.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.ONE).count());
-        dFacet.addItem("1.5", "1.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(1.5)).count());
-        dFacet.addItem("2.0", "2.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(2)).count());
-        dFacet.addItem("2.5", "2.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(2.5)).count());
-        dFacet.addItem("3.0", "3.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(3)).count());
-        dFacet.addItem("3.5", "3.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(3.5)).count());
-        dFacet.addItem("4.0", "4.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(4)).count());
-        dFacet.addItem("4.5", "4.5", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(4.5)).count());
-        dFacet.addItem("5.0", "5.0", (int) smartQuery.copy().eq(Geocache.DIFFICULTY, Amount.of(5)).count());
-        pageHelper.addFilterFacet(dFacet);
-
-        Facet tFacet = new Facet("T-Wertung", Geocache.TERRAIN.getName(), ctx.get("terrain").asString(), null);
-        tFacet.addItem("1.0", "1.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.ONE).count());
-        tFacet.addItem("1.5", "1.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(1.5)).count());
-        tFacet.addItem("2.0", "2.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(2)).count());
-        tFacet.addItem("2.5", "2.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(2.5)).count());
-        tFacet.addItem("3.0", "3.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(3)).count());
-        tFacet.addItem("3.5", "3.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(3.5)).count());
-        tFacet.addItem("4.0", "4.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(4)).count());
-        tFacet.addItem("4.5", "4.5", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(4.5)).count());
-        tFacet.addItem("5.0", "5.0", (int) smartQuery.copy().eq(Geocache.TERRAIN, Amount.of(5)).count());
-        pageHelper.addFilterFacet(tFacet);
 
         pageHelper.addQueryFacet(Geocache.TYPE.getName(),
                                  "Typ",
@@ -109,7 +85,12 @@ public class GeocacheController extends BizController {
         Page<Geocache> page = pageHelper.asPage().withPageSize(999).withTotalItems((int) smartQuery.count());
 
         List<Waypoint> waypoints = new ArrayList<>(Collections.emptyList());
-        page.getItems().forEach(geocache -> waypoints.add(geocache.getListingWaypoint()));
+        page.getItems().forEach(geocache -> {
+            Waypoint listingWaypoint = geocache.getListingWaypoint();
+            if (listingWaypoint != null) {
+                waypoints.add(listingWaypoint);
+            }
+        });
         Tuple<Tuple<Double, Double>, Tuple<Double, Double>> mapBounds = getMapBounds(waypoints);
 
         ctx.respondWith()
@@ -122,7 +103,7 @@ public class GeocacheController extends BizController {
         double seLatitude = 0;
         double seLongitude = 0;
         if (waypoints.isEmpty()) {
-            return new Tuple<>(new Tuple<>(nwLatitude, nwLongitude), new Tuple<>(seLatitude, seLongitude));
+            return new Tuple<>(new Tuple<>(55.00, 8.00), new Tuple<>(46.00, 12.00));
         }
         Waypoint firstWaypoint = waypoints.get(0);
         nwLatitude = firstWaypoint.getLatitude().getAmount().doubleValue();

@@ -31,7 +31,7 @@ public class WaypointInTour extends BizEntity {
             SQLEntityRef.writeOnceOn(Waypoint.class, BaseEntityRef.OnDelete.CASCADE);
 
     /**
-     * The position of the {@link Waypoint} in the{@link Tour} starting with #1
+     * The position of the {@link Waypoint} in the {@link Tour} starting with #1
      */
     public static final Mapping POSITION = Mapping.named("position");
     @Autoloaded
