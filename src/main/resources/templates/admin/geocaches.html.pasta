@@ -77,13 +77,13 @@
                     <table class="table table-striped" style="table-layout: fixed">
                         <thead class="table-header thead-light">
                         <tr>
-                            <th scope="col">Typ</th>
-                            <th scope="col">GC-Code</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Listing-Koordinaten</th>
-                            <th scope="col">Größe</th>
-                            <th scope="col">D-Wertung</th>
-                            <th scope="col">T-Wertung</th>
+                            <th scope="col" class="col-1 text-truncate">Typ</th>
+                            <th scope="col" class="col-2 text-truncate">GC-Code</th>
+                            <th scope="col" class="col-3 text-truncate">Name</th>
+                            <th scope="col" class="col-3 text-truncate">Listing-Koordinaten</th>
+                            <th scope="col" class="col-1 text-truncate">Größe</th>
+                            <th scope="col" class="col-1 text-truncate">D-Wertung</th>
+                            <th scope="col" class="col-1 text-truncate">T-Wertung</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -92,12 +92,13 @@
                                 <td>
                                     <img alt="@geocache.getType()" src="@geocache.getType().getIconUrl()" height="20px">
                                 </td>
-                                <td>
+                                <td class="text-truncate">
                                     <a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>
-                                <td>
+                                </td>
+                                <td class="text-truncate">
                                     <a href="/geocache/@geocache.getGcCode()">@geocache.getName()</a>
                                 </td>
-                                <td class="text-nowrap">
+                                <td class="text-truncate">
                                     <i:if test="@geocache.getListingWaypoint() == null">
                                         Der Geocache hat keinen Listing-Wegpunkt.
                                     </i:if>

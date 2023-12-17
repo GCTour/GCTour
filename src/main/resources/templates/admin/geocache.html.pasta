@@ -77,20 +77,20 @@
 
                     <div id="map" class="d-none d-xl-block map-js"></div>
 
-                    <table class="table table-striped">
+                    <table class="table table-striped" style="table-layout: fixed">
                         <thead class="table-header thead-light">
                         <tr>
-                            <th scope="col"></th>
-                            <th scope="col">@i18n("Waypoint.waypointType")</th>
-                            <th scope="col">Koordinaten</th>
-                            <th scope="col">Notiz</th>
+                            <th scope="col" class="col-1"></th>
+                            <th scope="col" class="col-3 text-truncate">@i18n("Waypoint.waypointType")</th>
+                            <th scope="col" class="col-lg-5 col-sm-9 text-truncate">Koordinaten</th>
+                            <th scope="col" class="d-sm-none d-lg-table-cell text-truncate">Notiz</th>
                         </tr>
                         </thead>
                         <tbody>
                         <i:for type="model.Waypoint" var="waypoint" items="@geocache.getWaypoints()">
                             <tr>
                                 <i:if test="@waypoint.getWaypointType() == model.WaypointType.ORIGINAL">
-                                    <td><img alt="@geocache.getType()" src="@geocache.getType().getIconUrl()"
+                                    <td class="col-1"><img alt="@geocache.getType()" src="@geocache.getType().getIconUrl()"
                                              height="20px"/></td>
                                     <script>
                                         sirius.ready(function () {
@@ -105,7 +105,7 @@
                                     </script>
 
                                     <i:else>
-                                        <td><img alt="@geocache.getWaypointType()"
+                                        <td><img alt="@waypoint.getWaypointType()"
                                                  src="@waypoint.getWaypointType().getIconUrl()"/></td>
                                         <script>
                                             sirius.ready(function () {
@@ -120,13 +120,13 @@
                                         </script>
                                     </i:else>
                                 </i:if>
-                                <td>@waypoint.getWaypointType()</td>
-                                <td>
+                                <td class="text-truncate">@waypoint.getWaypointType()</td>
+                                <td class="text-truncate">
                                     <a href="javascript:map.flyTo(['@waypoint.getLatitude().getAmount()', '@waypoint.getLongitude().getAmount()'], 15)">
                                         @waypoint.getCoordinates()
                                     </a>
                                 </td>
-                                <td>@waypoint.getNote()</td>
+                                <td class="text-truncate">@waypoint.getNote()</td>
                             </tr>
                         </i:for>
                         </tbody>
