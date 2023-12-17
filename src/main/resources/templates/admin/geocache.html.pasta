@@ -32,10 +32,10 @@
 
     <t:sidebar>
         <i:block name="sidebar">
-                 <!--TODO hübsch machen-->
+            <!--TODO hübsch machen-->
             <a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>
 
-            <img src="@geocache.getType().getIconUrl()" height="20px"/>
+            <img alt="@geocache.getType()" src="@geocache.getType().getIconUrl()" height="20px"/>
             <img alt="geocache.getSize()" src="@geocache.getSize().getIconUrl()"
                  title="@geocache.getSize()"/>
             @geocache.getDifficulty()
@@ -90,9 +90,10 @@
                         <i:for type="model.Waypoint" var="waypoint" items="@geocache.getWaypoints()">
                             <tr>
                                 <i:if test="@waypoint.getWaypointType() == model.WaypointType.ORIGINAL">
-                                    <td><img src="@geocache.getType().getIconUrl()" height="20px"/></td>
+                                    <td><img alt="@geocache.getType()" src="@geocache.getType().getIconUrl()"
+                                             height="20px"/></td>
                                     <script>
-                                        $(document).ready(function () {
+                                        sirius.ready(function () {
                                             let icon = L.icon({
                                                 iconUrl: '@geocache.getType().getIconUrl()',
                                                 iconSize: [20, 20],
@@ -104,9 +105,10 @@
                                     </script>
 
                                     <i:else>
-                                        <td><img src="@waypoint.getWaypointType().getIconUrl()"/></td>
+                                        <td><img alt="@geocache.getWaypointType()"
+                                                 src="@waypoint.getWaypointType().getIconUrl()"/></td>
                                         <script>
-                                            $(document).ready(function () {
+                                            sirius.ready(function () {
                                                 let icon = L.icon({
                                                     iconUrl: '@waypoint.getWaypointType().getIconUrl()',
                                                     iconSize: [20, 20],

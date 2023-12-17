@@ -42,7 +42,7 @@
 
             <i:block name="actions">
                 <div class="d-xl-none">
-                    <a class="btn btn-link ml-1 map-button-js" title="Karte anzeigen" aria-hidden="true">
+                    <a class="btn btn-link map-button-js" title="Karte anzeigen" aria-hidden="true">
                         <i class="fas fa-map"></i>
                     </a>
                 </div>
@@ -78,7 +78,7 @@
 
     <t:emptyCheck data="waypointsInTour">
         <i:block name="empty">
-            <span class="h5 mb-4">Die Tour enthält (noch) keine Wegpunkte.</span>
+            <span class="h5">Die Tour enthält (noch) keine Wegpunkte.</span>
         </i:block>
 
         <div class="card mb-4">
@@ -165,7 +165,8 @@
                                 </i:else>
                             </i:if>
                             <i:if test="geocache != null">
-                                <td><img src="@geocache.getSize().getIconUrl()" title="@geocache.getSize()"></td>
+                                <td><img alt="@geocache.getSize()" src="@geocache.getSize().getIconUrl()"
+                                         title="@geocache.getSize()"></td>
                                 <td>@geocache.getDifficulty()</td><!--TODO Icon?-->
                                 <td>@geocache.getTerrain()</td><!--TODO Icon?-->
 

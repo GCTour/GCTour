@@ -18,20 +18,20 @@
 
         <div class="card mb-4">
             <div class="card-body overflow-auto">
-                <table class="table table-striped">
+                <table class="table table-striped" style="table-layout: fixed">
                     <thead class="table-header thead-light">
                     <tr>
                         <th>
                             <div class="row">
                                 <div class="col-12">
                                     <div class="row">
-                                        <div class="col-sm-4">Webcode</div>
-                                        <div class="col-sm-4">Geocaches</div>
-                                        <div class="col-sm-4">Wegpunkte</div>
+                                        <div class="col-4 text-truncate">Webcode</div>
+                                        <div class="col-4 text-truncate">Geocaches</div>
+                                        <div class="col-4 text-truncate">Wegpunkte</div>
                                     </div>
                                     <div class="row">
-                                        <small class="text-muted col-sm-8">Name</small>
-                                        <small class="text-muted col-sm-4">davon eigene</small>
+                                        <small class="text-muted col-8 text-truncate">Name</small>
+                                        <small class="text-muted col-4 text-truncate">davon eigene</small>
                                     </div>
                                 </div>
                             </div>
@@ -45,17 +45,17 @@
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="row">
-                                            <div class="col-4">
+                                            <div class="col-4 text-truncate">
                                                 <a href="/tour/@tour.getWebcode()">@tour.getWebcode()</a>
                                             </div>
-                                            <div class="col-4 text-small">@tour.getGeocacheCount()</div>
-                                            <div class="col-4 text-small">@tour.getWaypointCount()</div>
+                                            <div class="col-4 text-small text-truncate">@tour.getGeocacheCount()</div>
+                                            <div class="col-4 text-small text-truncate">@tour.getWaypointCount()</div>
                                         </div>
                                         <div class="row">
-                                            <small class="muted col-8" style="overflow-wrap: anywhere">
+                                            <small class="muted col-8 text-truncate" style="overflow-wrap: anywhere">
                                                 @tour.getName()
                                             </small>
-                                            <div class="muted col-4 text-muted text-small">
+                                            <div class="muted col-4 text-muted text-small text-truncate">
                                                 @tour.getOwnWaypointCount()
                                             </div>
                                         </div>

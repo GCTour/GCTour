@@ -1,7 +1,7 @@
 package client;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import model.Geocache;
 import model.GeocacheSize;
@@ -18,6 +18,7 @@ import sirius.db.jdbc.OMA;
 import sirius.db.jdbc.SmartQuery;
 import sirius.db.mixing.query.QueryField;
 import sirius.kernel.commons.Amount;
+import sirius.kernel.commons.Json;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.commons.Tuple;
 import sirius.kernel.di.std.Register;
@@ -80,7 +81,7 @@ public class TourController extends BizController {
      */
     @Routed("/tour/:1/delete")
     public void deleteTour(WebContext ctx, String webcode) {
-        oma.delete(oma.select(Tour.class).eq(Tour.WEBCODE, webcode).queryFirst());
+        oma.select(Tour.class).eq(Tour.WEBCODE, webcode).delete();
         UserContext.message(Message.info().withTextMessage("Die Tour wurde erfoglreich gelöscht."));
         if (UserContext.getCurrentUser().isLoggedIn()) {
             ctx.respondWith().redirectToGet("/tours");
@@ -98,10 +99,10 @@ public class TourController extends BizController {
     @Routed("/tour/:1/:2/delete")
     public void deleteWaypointFromTour(WebContext ctx, String webcode, int position) {
         Tour tour = oma.select(Tour.class).eq(Tour.WEBCODE, webcode).queryFirst();
-        oma.delete(oma.select(WaypointInTour.class)
+        oma.select(WaypointInTour.class)
                       .eq(WaypointInTour.TOUR, tour)
                       .eq(WaypointInTour.POSITION, position)
-                      .queryFirst());
+                      .delete();
         oma.select(WaypointInTour.class)
            .eq(WaypointInTour.TOUR, tour)
            .where(OMA.FILTERS.gt(WaypointInTour.POSITION, position))
@@ -191,12 +192,12 @@ public class TourController extends BizController {
     @Routed(value = "/tour/upload", priority = 90)
     public void uploadTour(WebContext ctx, JSONStructuredOutput out) {
         ctx.markAsLongCall();
-        JSONObject json = ctx.getJSONContent().getJSONObject("tour");
+        JsonNode json = ctx.getJSONContent().get("tour");
 
         // TODO Passwortcheck
-        String webcode = json.getString("webcode");
-        String tourName = json.getString("name");
-        boolean saveAsNewTour = json.getBoolean("saveAsNewTour");
+        String webcode = json.get("webcode").asText();
+        String tourName = json.get("name").asText();
+        boolean saveAsNewTour = json.get("saveAsNewTour").asBoolean();
 
         Tour tour = new Tour();
         Optional<Tour> oldTour = oma.select(Tour.class).eq(Tour.WEBCODE, webcode.toUpperCase()).one();
@@ -214,22 +215,22 @@ public class TourController extends BizController {
         oma.update(tour);
 
         // TODO Geocaches verarbeiten...
-        JSONArray jsonGeocaches = json.getJSONArray("geocaches");
+        ArrayNode jsonGeocaches = Json.parseArray(json.get("geocaches").toString());
         for (int i = 0; i < jsonGeocaches.size(); i++) {
-            String gcCode = jsonGeocaches.getJSONObject(i).getString("code");
+            String gcCode = jsonGeocaches.get(i).get("code").asText();
             Geocache geocache = oma.select(Geocache.class).eq(Geocache.GC_CODE, gcCode).first().orElse(new Geocache());
             geocache.setGcCode(gcCode);
-            geocache.setName(jsonGeocaches.getJSONObject(i).getString("name"));
-            geocache.setType(GeocacheType.valueOf(jsonGeocaches.getJSONObject(i).getString("geocacheType")));
-            geocache.setSize(GeocacheSize.valueOf(jsonGeocaches.getJSONObject(i).getString("containerType")));
-            geocache.setDifficulty(Amount.of(jsonGeocaches.getJSONObject(i).getDoubleValue("difficulty")));
-            geocache.setTerrain(Amount.of(jsonGeocaches.getJSONObject(i).getDoubleValue("terrain")));
+            geocache.setName(jsonGeocaches.get(i).get("name").asText());
+            geocache.setType(GeocacheType.valueOf(jsonGeocaches.get(i).get("geocacheType").asText()));
+            geocache.setSize(GeocacheSize.valueOf(jsonGeocaches.get(i).get("containerType").asText()));
+            geocache.setDifficulty(Amount.of(jsonGeocaches.get(i).get("difficulty").asDouble()));
+            geocache.setTerrain(Amount.of(jsonGeocaches.get(i).get("terrain").asDouble()));
             oma.update(geocache);
 
             //Listing
-            JSONObject postedCoordinates = jsonGeocaches.getJSONObject(i).getJSONObject("postedCoordinates");
-            Amount originalLatitude = Amount.of(postedCoordinates.getDoubleValue("latitude"));
-            Amount originalLongitude = Amount.of(postedCoordinates.getDoubleValue("longitude"));
+            JsonNode postedCoordinates = jsonGeocaches.get(i).get("postedCoordinates");
+            Amount originalLatitude = Amount.of(postedCoordinates.get("latitude").decimalValue());
+            Amount originalLongitude = Amount.of(postedCoordinates.get("longitude").decimalValue());
             Waypoint listingWaypoint = oma.select(Waypoint.class)
                                           .eq(Waypoint.GEOCACHE, geocache)
                                           .eq(Waypoint.WAYPOINT_TYPE, WaypointType.ORIGINAL)
@@ -243,11 +244,10 @@ public class TourController extends BizController {
             Waypoint waypointForTour = listingWaypoint;
 
             //Final
-            JSONObject userCorrectedCoordinates =
-                    jsonGeocaches.getJSONObject(i).getJSONObject("userCorrectedCoordinates");
+            JsonNode userCorrectedCoordinates = jsonGeocaches.get(i).get("userCorrectedCoordinates");
             if (userCorrectedCoordinates != null) {
-                Amount finalLatitude = Amount.of(userCorrectedCoordinates.getDoubleValue("latitude"));
-                Amount finalLongitude = Amount.of(userCorrectedCoordinates.getDoubleValue("longitude"));
+                Amount finalLatitude = Amount.of(userCorrectedCoordinates.get("latitude").asDouble());
+                Amount finalLongitude = Amount.of(userCorrectedCoordinates.get("longitude").asDouble());
                 Waypoint finalWaypoint = oma.select(Waypoint.class)
                                             .eq(Waypoint.GEOCACHE, geocache)
                                             .eq(Waypoint.WAYPOINT_TYPE, WaypointType.FINAL_LOCATION)
@@ -277,12 +277,12 @@ public class TourController extends BizController {
         }
 
         //own Waypoints
-        JSONArray jsonWaypoints = json.getJSONArray("ownWaypoints");
+        ArrayNode jsonWaypoints = Json.parseArray(json.get("ownWaypoints").toString());
         for (int i = 0; i < jsonWaypoints.size(); i++) {
-            JSONObject jsonWaypoint = jsonWaypoints.getJSONObject(i);
-            Amount latitude = Amount.of(jsonWaypoint.getDoubleValue("latitude"));
-            Amount longitude = Amount.of(jsonWaypoint.getDoubleValue("longitude"));
-            String note = jsonWaypoint.getString("note");
+            JsonNode jsonWaypoint = jsonWaypoints.get(i);
+            Amount latitude = Amount.of(jsonWaypoint.get("latitude").asDouble());
+            Amount longitude = Amount.of(jsonWaypoint.get("longitude").asDouble());
+            String note = jsonWaypoint.get("note").asText();
             Waypoint ownWaypoint = new Waypoint();
             ownWaypoint.setLatitude(latitude);
             ownWaypoint.setLongitude(longitude);
@@ -295,7 +295,7 @@ public class TourController extends BizController {
                                                   .orElse(new WaypointInTour());
             ownWaypointInTour.getTour().setValue(tour);
             ownWaypointInTour.getWaypoint().setValue(ownWaypoint);
-            ownWaypointInTour.setPosition(jsonWaypoint.getInteger("position"));
+            ownWaypointInTour.setPosition(jsonWaypoint.get("position").asInt());
             newWaypointsInTour.add(ownWaypointInTour);
         }
 

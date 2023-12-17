@@ -36,11 +36,11 @@
 
         <t:emptyCheck data="geocaches">
             <i:block name="empty">
-                <span class="h5 mb-4">Es gibt keine Geocaches.</span>
+                <span class="h5">Es gibt keine Geocaches.</span>
             </i:block>
 
             <i:block name="filtered-empty">
-                <span class="h5 mb-4">Es gibt keine Geocaches mit dem Suchbegriff.</span>
+                <span class="h5">Es gibt keine Geocaches mit dem Suchbegriff.</span>
             </i:block>
 
             <div class="card mb-4">
@@ -74,7 +74,7 @@
 
                     <div id="map" class="d-none d-xl-block map-js"></div>
 
-                    <table class="table table-striped">
+                    <table class="table table-striped" style="table-layout: fixed">
                         <thead class="table-header thead-light">
                         <tr>
                             <th scope="col">Typ</th>
@@ -90,7 +90,7 @@
                         <i:for type="model.Geocache" var="geocache" items="geocaches.getItems()">
                             <tr>
                                 <td>
-                                    <img src="@geocache.getType().getIconUrl()" height="20px">
+                                    <img alt="@geocache.getType()" src="@geocache.getType().getIconUrl()" height="20px">
                                 </td>
                                 <td>
                                     <a href="https://coord.info/@geocache.getGcCode()" target="_blank">@geocache.getGcCode()</a>
